@@ -1,0 +1,3392 @@
+import { useState, useEffect, useMemo, useRef } from "react";
+
+
+/* Affiche syndicale conservee dans le fonds associatif (690 J). */
+const AFFICHE_CFTC =
+  "data:image/jpeg;base64," +
+  "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";
+
+/* ============================================================
+   Données — jeu fictif calqué sur le cadre de classement AD57
+   ============================================================ */
+
+const FONDS = {
+  "12 J 34": {
+    serie: "Série J — Documents entrés par voie extraordinaire (dons, legs, achats, dépôts)",
+    intitule: "Fonds de la famille Reynier — correspondance et titres de propriété",
+    dates: "1850–1920",
+    producteur: "Famille Reynier (notables de Metz)",
+    metrage: "0,80 ml",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "B", epi: 3, travee: 6, tablette: 4, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
+  },
+  "E DEPOT 128/E 3": {
+    serie: "Archives communales déposées — commune de Metz, sous-série municipale E (état civil)",
+    intitule: "Registre des naissances, commune de Metz",
+    dates: "1793–1802",
+    producteur: "Commune de Metz",
+    metrage: "0,10 ml",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "A", epi: 1, travee: 1, tablette: 2, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "148 W 256": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
+    intitule: "Préfecture — service de l'urbanisme, permis de construire",
+    dates: "1965–1978",
+    producteur: "Préfecture de la Moselle",
+    metrage: "1,20 ml",
+    comm: "differee",
+    commDetail: "Non communicable — 75 ans (documents relatifs à la vie privée)",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "B", epi: 4, travee: 3, tablette: 6, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
+  },
+  "4 FI 12": {
+    serie: "Série Fi — Documents figurés (cartes, plans, photographies)",
+    intitule: "Carte postale — Vue du port de Metz",
+    dates: "1905",
+    producteur: "Collection factice",
+    metrage: "1 unité (conditionnement spécifique)",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "A", epi: 5, travee: 10, tablette: 1, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "2 O 45": {
+    serie: "Série O — Administration et comptabilité communales (1800–1940), sous-série Travaux communaux",
+    intitule: "Travaux communaux — voirie et bâtiments",
+    dates: "1880–1910",
+    producteur: "Commune de Sarreguemines",
+    metrage: "0,45 ml",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "B", epi: 2, travee: 4, tablette: 3, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
+  },
+  "6 M 78": {
+    serie: "Série M — Administration générale et économie (1800–1940), sous-série Agriculture",
+    intitule: "Statistiques agricoles annuelles",
+    dates: "1920–1935",
+    producteur: "Préfecture de la Moselle, service de l'agriculture",
+    metrage: "0,30 ml",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "B", epi: 1, travee: 8, tablette: 5, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
+  },
+  "2 X 18": {
+    serie: "Série X — Assistance et prévoyance sociale (1800–1940), sous-série Hospices et hôpitaux",
+    intitule: "Registre d'admission, Hospice Saint-Julien",
+    dates: "1850–1875",
+    producteur: "Hospice Saint-Julien",
+    metrage: "0,15 ml",
+    comm: "differee",
+    commDetail: "Non communicable — 120 ans à compter de la date de l'acte (secret médical)",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "A", epi: 2, travee: 2, tablette: 2, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "4 Q 112": {
+    serie: "Série Q — Domaines, enregistrement, hypothèques (1800–1940), sous-série Hypothèques",
+    intitule: "Bureau des hypothèques de Metz — transcriptions",
+    dates: "1810–1860",
+    producteur: "Bureau des hypothèques de Metz",
+    metrage: "0,60 ml",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "B", epi: 4, travee: 8, tablette: 5, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
+  },
+  "212 W 45": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
+    intitule: "Conseil départemental — délibérations et action sociale",
+    dates: "1985–2005",
+    producteur: "Département de la Moselle",
+    metrage: "2,10 ml",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "B", epi: 67, travee: 5, tablette: 3, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
+  },
+  "472 HBL": {
+    serie: "Série HBL — Houillères du Bassin de Lorraine (fonds d'entreprise nationalisée)",
+    intitule: "Direction des travaux du fond — plans d'exploitation et rapports de sécurité",
+    dates: "1946–2004",
+    producteur: "Houillères du Bassin de Lorraine (HBL)",
+    metrage: "1,80 ml",
+    comm: "differee",
+    commDetail: "Non communicable — 50 ans pour les dossiers de personnel (vie privée)",
+    loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 140, travee: 7, tablette: 2, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "690 J": {
+    serie: "Série J — Documents entrés par voie extraordinaire (dons, legs, achats, dépôts)",
+    intitule: "Fonds d'une association de mémoire ouvrière — tracts, affiches syndicales, photographies et témoignages",
+    dates: "1963–2010",
+    producteur: "Association de mémoire du bassin houiller",
+    metrage: "3,40 ml",
+    comm: "libre",
+    image: AFFICHE_CFTC,
+    imageLegende: "Affiche syndicale CFTC, Fédération des mineurs — bilan de la grève du 1er mars au 4 avril 1963. Imprimerie de la Centrale, Lens.",
+    loc: { site: "CAITM — Saint-Avold", magasin: "B", epi: 22, travee: 9, tablette: 4, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
+  },
+  "152 ETP": {
+    serie: "Série ETP — Archives publiques d'organismes dotés de la personnalité juridique",
+    intitule: "Chambre de commerce et d'industrie de la Moselle — délibérations et affaires économiques",
+    dates: "1920–1985",
+    producteur: "Chambre de commerce et d'industrie de la Moselle",
+    metrage: "5,60 ml",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "A", epi: 91, travee: 4, tablette: 5, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "2654 CAITM": {
+    serie: "Fonds industriels et techniques — Centre des Archives Industrielles et Techniques de la Moselle",
+    intitule: "Sidérurgie mosellane — dossiers techniques et plans d'usine",
+    dates: "1900–1990",
+    producteur: "Établissements sidérurgiques de la vallée de la Fensch",
+    metrage: "2,30 ml",
+    comm: "libre",
+    loc: { site: "CAITM — Saint-Avold", magasin: "B", epi: 48, travee: 6, tablette: 1, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
+  },
+};
+
+const INSTRUMENTS = [
+  { type: "Répertoire numérique détaillé", titre: "Fonds de la famille Reynier", niveau: "Fonds (12 J)", dates: "1850–1920", cotesExtremes: "12 J 1 – 12 J 40", redacteur: "C. Mallet, 2005", format: "XML-EAD / PDF", coteEx: "12 J 34" },
+  { type: "Répertoire — archives communales déposées", titre: "Registres de l'état civil, commune de Metz", niveau: "Sous-série municipale E", dates: "1793–1892", cotesExtremes: "E DEPOT 128/E 1 – E DEPOT 128/E 34", redacteur: "Service des archives, 1998", format: "Papier + microfilm", coteEx: "E DEPOT 128/E 3" },
+  { type: "Bordereau de versement", titre: "Préfecture — service de l'urbanisme", niveau: "Versement (148 W)", dates: "1965–1978", cotesExtremes: "148 W 1 – 148 W 310", redacteur: "Préfecture de la Moselle, 1980", format: "PDF non normalisé", coteEx: "148 W 256" },
+  { type: "Répertoire des documents figurés", titre: "Collection factice — cartes postales et photographies", niveau: "Collection (Fi)", dates: "1880–1950", cotesExtremes: "1 Fi 1 – 6 Fi 90", redacteur: "C. Doret, 2012", format: "XML-EAD", coteEx: "4 FI 12" },
+  { type: "Répertoire numérique", titre: "Administration communale, Sarreguemines", niveau: "Sous-série (2 O)", dates: "1870–1920", cotesExtremes: "2 O 1 – 2 O 120", redacteur: "Service des archives, 2001", format: "Papier", coteEx: "2 O 45" },
+  { type: "Répertoire méthodique", titre: "Agriculture — statistiques et enquêtes", niveau: "Sous-série (6 M)", dates: "1900–1938", cotesExtremes: "6 M 1 – 6 M 95", redacteur: "Service des archives, 1990", format: "Papier", coteEx: "6 M 78" },
+  { type: "Répertoire", titre: "Hospice Saint-Julien — administration et admissions", niveau: "Sous-série (2 X)", dates: "1820–1900", cotesExtremes: "2 X 1 – 2 X 60", redacteur: "Archives hospitalières, 1988", format: "PDF", coteEx: "2 X 18" },
+  { type: "Répertoire numérique", titre: "Bureau des hypothèques de Metz", niveau: "Sous-série (4 Q)", dates: "1800–1880", cotesExtremes: "4 Q 1 – 4 Q 200", redacteur: "Service des archives, 2008", format: "Papier", coteEx: "4 Q 112" },
+  { type: "Répertoire numérique détaillé", titre: "Houillères du Bassin de Lorraine — travaux du fond", niveau: "Série HBL", dates: "1946–2004", cotesExtremes: "1 HBL – 980 HBL", redacteur: "CAITM, 2010", format: "XML-EAD", coteEx: "472 HBL" },
+  { type: "Répertoire numérique", titre: "Association de mémoire du bassin houiller", niveau: "Fonds privé (690 J)", dates: "1963–2010", cotesExtremes: "690 J 1 – 690 J 85", redacteur: "Service des archives, 2015", format: "XML-EAD", coteEx: "690 J" },
+  { type: "Répertoire numérique", titre: "Chambre de commerce et d'industrie de la Moselle", niveau: "Série ETP (152 ETP)", dates: "1920–1985", cotesExtremes: "152 ETP 1 – 152 ETP 340", redacteur: "Service des archives, 2011", format: "PDF", coteEx: "152 ETP" },
+  { type: "Répertoire — archives industrielles", titre: "Sidérurgie mosellane — dossiers techniques et plans", niveau: "Fonds CAITM", dates: "1900–1990", cotesExtremes: "2600 CAITM – 2700 CAITM", redacteur: "CAITM, 2018", format: "XML-EAD", coteEx: "2654 CAITM" },
+];
+
+/* ------------------------------------------------------------
+   Répertoire numérique détaillé — fonds HBL (série HBL)
+   Structuré selon ISAD(G) : identification, contexte, contenu,
+   conditions d'accès, puis plan de classement.
+   ------------------------------------------------------------ */
+
+const REPERTOIRE_HBL = {
+  coteEx: "472 HBL",
+  titre: "Houillères du Bassin de Lorraine",
+  soustitre: "Répertoire numérique détaillé de la série HBL",
+  redacteur: "CAITM, Saint-Avold, 2010",
+
+  identification: [
+    ["Référence", "FR AD57 / série HBL"],
+    ["Intitulé", "Fonds des Houillères du Bassin de Lorraine"],
+    ["Dates extrêmes", "1946–2004 (documents rapportés depuis 1856)"],
+    ["Niveau de description", "Fonds"],
+    ["Importance matérielle", "980 articles — environ 340 mètres linéaires"],
+    ["Support", "Papier, calques, plans de grand format, photographies"],
+  ],
+
+  contexte: [
+    {
+      titre: "Nom du producteur",
+      texte:
+        "Houillères du Bassin de Lorraine (HBL), établissement public à caractère industriel et commercial.",
+    },
+    {
+      titre: "Histoire administrative",
+      texte:
+        "La loi du 17 mai 1946 nationalise les mines de charbon et crée les Houillères du Bassin de Lorraine, qui reprennent les concessions exploitées jusque-là par des sociétés privées (Petite-Rosselle, Sarre-et-Moselle, La Houve). L'exploitation se concentre sur la Moselle-Est, autour de Forbach, Freyming-Merlebach, Saint-Avold et Creutzwald. L'établissement gère non seulement l'extraction mais aussi les cités minières, les œuvres sociales, les cokeries et centrales thermiques. Le dernier puits, La Houve à Creutzwald, ferme le 23 avril 2004 ; les HBL sont liquidées et leurs missions résiduelles transférées à Charbonnages de France.",
+    },
+    {
+      titre: "Historique de la conservation",
+      texte:
+        "Les archives ont été rassemblées par le service central de documentation des HBL, puis transférées par étapes aux Archives départementales de la Moselle entre 1998 et 2005, à mesure de la fermeture des sièges. Le fonds est conservé au Centre des Archives Industrielles et Techniques de la Moselle (CAITM) à Saint-Avold.",
+    },
+    {
+      titre: "Modalité d'entrée",
+      texte: "Versement (archives publiques d'un établissement public industriel et commercial).",
+    },
+  ],
+
+  contenu: [
+    {
+      titre: "Présentation du contenu",
+      texte:
+        "Le fonds documente l'ensemble du cycle d'exploitation : décisions de la direction, gestion du personnel et relations sociales, travaux du fond, sécurité et hygiène, installations de surface, cartographie minière, ainsi que la vie des cités et les œuvres sociales. Les plans d'exploitation et les rapports de sécurité constituent la partie la plus consultée, notamment pour les recherches sur les affaissements miniers et les maladies professionnelles.",
+    },
+    {
+      titre: "Évaluation, tris et éliminations",
+      texte:
+        "Ont été éliminés après visa : les doubles de circulaires, la comptabilité courante au-delà du délai de prescription, les bons de commande de fournitures. Les dossiers individuels de personnel ont été conservés intégralement en raison de leur intérêt pour la reconnaissance des maladies professionnelles.",
+    },
+    {
+      titre: "Accroissements",
+      texte: "Fonds clos.",
+    },
+    {
+      titre: "Mode de classement",
+      texte:
+        "Classement par fonction, en sept parties. À l'intérieur de chaque partie, l'ordre est chronologique puis alphabétique par siège d'exploitation.",
+    },
+  ],
+
+  acces: [
+    {
+      titre: "Conditions d'accès",
+      texte:
+        "Archives publiques. Communicabilité immédiate pour la majorité du fonds. Délai de 50 ans pour les dossiers individuels de personnel (atteinte à la vie privée) et de 25 ans pour certains rapports d'expertise contenant des secrets industriels.",
+    },
+    {
+      titre: "Conditions de reproduction",
+      texte:
+        "Reproduction libre pour usage privé. Les plans de grand format sont reproduits uniquement par le service, sur devis.",
+    },
+    {
+      titre: "Langue et écriture",
+      texte: "Français, avec une part de documents en allemand pour les pièces antérieures à 1918 et la période 1940-1944.",
+    },
+    {
+      titre: "Caractéristiques matérielles",
+      texte:
+        "Certains calques d'exploitation sont fragiles et consultables uniquement sous forme numérisée. Les plans de grand format se consultent sur table dédiée, sur réservation.",
+    },
+  ],
+
+  sourcesComplementaires: [
+    "Série W — versements de la préfecture relatifs à la police des mines et aux affaissements miniers.",
+    "Série ETP — archives de la Chambre de commerce et d'industrie de la Moselle sur l'économie du bassin.",
+    "690 J — fonds d'une association de mémoire ouvrière : témoignages oraux et photographies complétant les archives d'entreprise.",
+    "Fonds CAITM — archives de la sidérurgie mosellane, pour l'articulation charbon-acier.",
+  ],
+
+  plan: [
+    {
+      num: "1",
+      titre: "Direction générale et organes de direction",
+      cotes: "1 HBL – 85 HBL",
+      articles: [
+        { cote: "1 HBL – 12 HBL", analyse: "Conseil d'administration : procès-verbaux de séances.", dates: "1946–2004" },
+        { cote: "13 HBL – 40 HBL", analyse: "Direction générale : notes de service, circulaires, correspondance.", dates: "1946–1998" },
+        { cote: "41 HBL – 85 HBL", analyse: "Rapports annuels d'activité et bilans d'exploitation.", dates: "1947–2003" },
+      ],
+    },
+    {
+      num: "2",
+      titre: "Personnel et relations sociales",
+      cotes: "86 HBL – 240 HBL",
+      restreint: true,
+      articles: [
+        { cote: "86 HBL – 178 HBL", analyse: "Dossiers individuels du personnel du fond, classés alphabétiquement.", dates: "1946–2004", restreint: true },
+        { cote: "179 HBL – 205 HBL", analyse: "Recrutement de la main-d'œuvre étrangère : conventions, dossiers de logement.", dates: "1947–1975" },
+        { cote: "206 HBL – 240 HBL", analyse: "Relations sociales : comités d'entreprise, grèves, négociations salariales.", dates: "1948–2001" },
+      ],
+    },
+    {
+      num: "3",
+      titre: "Exploitation — travaux du fond",
+      cotes: "241 HBL – 520 HBL",
+      articles: [
+        { cote: "241 HBL – 320 HBL", analyse: "Ouverture et fonçage des puits : études préalables, procès-verbaux de travaux.", dates: "1946–1970" },
+        { cote: "321 HBL – 440 HBL", analyse: "Exploitation des tailles : programmes annuels, rendements, comptes rendus mensuels.", dates: "1946–2004" },
+        { cote: "441 HBL – 471 HBL", analyse: "Méthodes d'abattage et mécanisation : essais, notes techniques.", dates: "1952–1995" },
+        { cote: "472 HBL", analyse: "Direction des travaux du fond : plans d'exploitation et rapports de sécurité du siège de Merlebach.", dates: "1958–1992", vedette: true },
+        { cote: "473 HBL – 520 HBL", analyse: "Aérage et exhaure : relevés, plans de circuits, incidents.", dates: "1946–2003" },
+      ],
+    },
+    {
+      num: "4",
+      titre: "Sécurité, hygiène et santé au travail",
+      cotes: "521 HBL – 640 HBL",
+      articles: [
+        { cote: "521 HBL – 580 HBL", analyse: "Accidents du fond : procès-verbaux d'enquête, rapports d'expertise.", dates: "1946–2004" },
+        { cote: "581 HBL – 615 HBL", analyse: "Prévention des coups de grisou et des poussières : mesures, consignes, matériel.", dates: "1946–2002" },
+        { cote: "616 HBL – 640 HBL", analyse: "Silicose et maladies professionnelles : dossiers de reconnaissance, statistiques.", dates: "1950–2004", restreint: true },
+      ],
+    },
+    {
+      num: "5",
+      titre: "Installations de surface, cokeries et centrales",
+      cotes: "641 HBL – 810 HBL",
+      articles: [
+        { cote: "641 HBL – 720 HBL", analyse: "Lavoirs et installations de traitement : plans, comptes rendus d'exploitation.", dates: "1948–2003" },
+        { cote: "721 HBL – 775 HBL", analyse: "Cokerie de Marienau : construction, exploitation, contrôles environnementaux.", dates: "1952–2004" },
+        { cote: "776 HBL – 810 HBL", analyse: "Centrales thermiques : production d'électricité, conventions avec EDF.", dates: "1950–2004" },
+      ],
+    },
+    {
+      num: "6",
+      titre: "Cartographie et plans miniers",
+      cotes: "811 HBL – 920 HBL",
+      articles: [
+        { cote: "811 HBL – 870 HBL", analyse: "Plans d'exploitation par siège, à différentes échelles.", dates: "1946–2004" },
+        { cote: "871 HBL – 900 HBL", analyse: "Plans de surface : cités, voies ferrées, réseaux.", dates: "1946–1998" },
+        { cote: "901 HBL – 920 HBL", analyse: "Cartes des affaissements miniers et zones de risque.", dates: "1960–2004" },
+      ],
+    },
+    {
+      num: "7",
+      titre: "Cités minières, œuvres sociales et communication",
+      cotes: "921 HBL – 980 HBL",
+      articles: [
+        { cote: "921 HBL – 950 HBL", analyse: "Cités minières : construction, attribution des logements, entretien.", dates: "1946–2004" },
+        { cote: "951 HBL – 968 HBL", analyse: "Œuvres sociales : colonies de vacances, sport, économats.", dates: "1947–2000" },
+        { cote: "969 HBL – 980 HBL", analyse: "Communication : journal d'entreprise, films, photographies de reportage.", dates: "1950–2004" },
+      ],
+    },
+  ],
+};
+
+const PRODUCTEURS = [
+  {
+    type: "Administration déconcentrée de l'État",
+    nom: "Préfecture de la Moselle",
+    dates: "1800 – aujourd'hui",
+    description:
+      "Représentant de l'État dans le département. Elle a produit l'essentiel des séries modernes (M à Z) avant 1940, puis verse ses archives en série W depuis 1940.",
+    fondsAssocies: "Séries M, Q, W",
+    coteEx: "148 W 256",
+  },
+  {
+    type: "Collectivité territoriale",
+    nom: "Département de la Moselle (Conseil départemental)",
+    dates: "1982 – aujourd'hui",
+    description:
+      "Compétences en action sociale, routes départementales, collèges et archives. Autonome en gestion depuis les lois de décentralisation de 1982.",
+    fondsAssocies: "Série W (versements du Département)",
+    coteEx: "212 W 45",
+  },
+  {
+    type: "Entreprise publique (exploitation minière)",
+    nom: "Houillères du Bassin de Lorraine (HBL)",
+    dates: "1946 – 2004",
+    description:
+      "Exploitant public du charbon en Moselle-Est (Forbach, Freyming-Merlebach, Petite-Rosselle), né de la nationalisation des mines en 1946. Ses archives sont conservées au CAITM à Saint-Avold.",
+    fondsAssocies: "Série HBL (site CAITM, Saint-Avold)",
+    coteEx: "472 HBL",
+  },
+  {
+    type: "Organisme consulaire",
+    nom: "Chambre de commerce et d'industrie de la Moselle",
+    dates: "1815 – aujourd'hui",
+    description:
+      "Organisme doté de la personnalité juridique représentant les intérêts du commerce et de l'industrie. Ses archives antérieures à 1940 sont regroupées en série ETP plutôt que scindées entre séries anciennes et série W.",
+    fondsAssocies: "Série ETP (152 ETP)",
+    coteEx: "152 ETP",
+  },
+  {
+    type: "Producteur privé (famille)",
+    nom: "Famille Reynier",
+    dates: "1850 – 1920",
+    description:
+      "Famille de notables messins, propriétaire de biens fonciers en Moselle. Ses papiers sont entrés aux Archives départementales par don en 1998. Producteur privé : le fonds n'est pas une archive publique, il est entré par voie extraordinaire et son classement dépend d'un contrat de don, qui peut assortir la communication de conditions particulières.",
+    fondsAssocies: "Série J (12 J)",
+    coteEx: "12 J 34",
+  },
+  {
+    type: "Collectivité territoriale",
+    nom: "Commune de Metz",
+    dates: "1790 – aujourd'hui",
+    description:
+      "Commune chef-lieu du département. Ses archives anciennes ont été déposées aux Archives départementales, où elles conservent leur propre cadre de classement communal, distinct des séries départementales.",
+    fondsAssocies: "E DEPOT 128 · série Q (hypothèques)",
+    coteEx: "E DEPOT 128/E 3",
+  },
+  {
+    type: "Collectivité territoriale",
+    nom: "Commune de Sarreguemines",
+    dates: "1790 – aujourd'hui",
+    description:
+      "Commune de Moselle-Est. Ses dossiers de travaux communaux du XIXe siècle relèvent de la série O, qui rassemble la tutelle exercée par la préfecture sur l'administration communale.",
+    fondsAssocies: "Série O (2 O)",
+    coteEx: "2 O 45",
+  },
+  {
+    type: "Établissement hospitalier",
+    nom: "Hospice Saint-Julien",
+    dates: "1820 – 1900",
+    description:
+      "Établissement d'assistance accueillant indigents et malades. Ses registres d'admission contiennent des données personnelles et médicales, d'où un délai de communicabilité long.",
+    fondsAssocies: "Série X (2 X)",
+    coteEx: "2 X 18",
+  },
+  {
+    type: "Association loi 1901",
+    nom: "Association de mémoire du bassin houiller",
+    dates: "1970 – aujourd'hui",
+    description:
+      "Association d'anciens mineurs et de descendants, qui collecte témoignages, photographies et tracts syndicaux. Producteur privé : son fonds complète les archives d'entreprise des Houillères par le point de vue des travailleurs.",
+    fondsAssocies: "Série J (690 J)",
+    coteEx: "690 J",
+  },
+  {
+    type: "Entreprise sidérurgique",
+    nom: "Établissements sidérurgiques de la vallée de la Fensch",
+    dates: "1900 – 1990",
+    description:
+      "Usines de la vallée de la Fensch, second pilier industriel de la Moselle avec le charbon. Leurs dossiers techniques et plans d'usine sont conservés au CAITM, aux côtés des fonds miniers.",
+    fondsAssocies: "Fonds CAITM",
+    coteEx: "2654 CAITM",
+  },
+  {
+    type: "Service déconcentré de l'État",
+    nom: "Bureau des hypothèques de Metz",
+    dates: "1799 – 1940",
+    description:
+      "Service chargé d'enregistrer les mutations de propriété immobilière. Ses registres de transcription sont l'une des sources les plus consultées en salle de lecture, pour les recherches de propriété et de généalogie.",
+    fondsAssocies: "Série Q (4 Q)",
+    coteEx: "4 Q 112",
+  },
+  {
+    type: "Collection (sans producteur unique)",
+    nom: "Collection factice",
+    dates: "1880 – 1950",
+    description:
+      "Ensemble constitué par le service lui-même, par achats et dons successifs, à partir de pièces d'origines diverses. Ce n'est pas un fonds : il n'y a pas de producteur unique, et le regroupement se fait par nature de support et non par origine. C'est l'exception qui éclaire le principe du respect des fonds.",
+    fondsAssocies: "Série Fi (documents figurés)",
+    coteEx: "4 FI 12",
+  },
+];
+
+/* ============================================================
+   Styles
+   ============================================================ */
+
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+.sia{
+  --paper:#EFE8D8; --paper-dark:#e3dac6; --ink:#2b2a26; --ink-soft:#5b564a;
+  --kraft:#8b6f4e; --green:#42544a; --green-dark:#31403a; --red:#a5342a;
+  --card:#faf7ee; --line:#c9bd9e;
+  font-family:'IBM Plex Sans',sans-serif; color:var(--ink);
+  background:repeating-linear-gradient(180deg,transparent,transparent 27px,rgba(139,111,78,.08) 28px),var(--paper);
+  min-height:100vh; overflow-x:hidden; position:relative;
+}
+.sia *{box-sizing:border-box;}
+
+.sia-topbar{background:var(--green-dark);color:#e9e4d4;padding:.9rem 1.5rem;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:.5rem;border-bottom:3px solid var(--red);}
+.sia-brand{display:flex;align-items:baseline;gap:.6rem;}
+.sia-sigle{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.75rem;letter-spacing:.12em;
+  background:var(--red);color:#fff;padding:.15rem .45rem;border-radius:2px;}
+.sia-nom{font-family:'Libre Baskerville',serif;font-size:1.15rem;}
+/* Frise des étapes : l'ordre des gestes se lit d'un coup d'oeil */
+.sia-frise{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;min-width:0;}
+.sia-etapes{display:flex;align-items:stretch;gap:0;list-style:none;margin:0;padding:0;}
+.sia-etape{position:relative;display:flex;align-items:center;}
+.sia-etape:not(:first-child)::before{content:"";width:18px;height:2px;
+  background:rgba(233,228,212,.28);flex:0 0 auto;}
+.sia-etape button{display:flex;flex-direction:column;align-items:center;gap:.15rem;
+  background:none;border:none;cursor:pointer;padding:.1rem .35rem;font-family:'IBM Plex Sans',sans-serif;}
+.sia-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:.75rem;font-weight:600;
+  border:2px solid rgba(233,228,212,.35);color:#c7c0ab;background:transparent;transition:all .2s;}
+.sia-etiq{font-size:.72rem;letter-spacing:.02em;color:#c7c0ab;white-space:nowrap;}
+.sia-compte{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:#8f8672;line-height:1;}
+.sia-etape button[data-fait="true"] .sia-num{border-color:#8fae86;color:#d6e5cf;}
+.sia-etape button[data-fait="true"] .sia-compte{color:#a8c2a3;}
+.sia-etape button[data-active="true"] .sia-num{background:var(--red);border-color:var(--red);color:#fff;}
+.sia-etape button[data-active="true"] .sia-etiq{color:#fff;font-weight:600;}
+.sia-etape button:hover .sia-etiq{color:#e9e4d4;}
+.sia-etape button:focus-visible{outline:2px solid var(--red);outline-offset:2px;border-radius:3px;}
+.sia-ressource{font-family:'IBM Plex Sans',sans-serif;font-size:.72rem;background:none;
+  border:1px solid rgba(233,228,212,.3);color:#c7c0ab;padding:.3rem .6rem;border-radius:2px;
+  cursor:pointer;white-space:nowrap;}
+.sia-ressource:hover{border-color:rgba(233,228,212,.6);color:#e9e4d4;}
+.sia-ressource[data-active="true"]{background:rgba(233,228,212,.14);color:#fff;
+  border-color:rgba(233,228,212,.6);}
+.sia-ressource:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+
+.sia-wrap{max-width:840px;margin:0 auto;padding:2rem 1.2rem 3.5rem;position:relative;z-index:2;}
+.sia-intro{text-align:center;margin-bottom:2rem;}
+.sia-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--red);margin-bottom:.4rem;}
+.sia-intro h1{font-family:'Libre Baskerville',serif;font-weight:400;font-size:1.7rem;margin:0 0 .5rem;}
+.sia-intro p{color:var(--ink-soft);font-size:.92rem;max-width:560px;margin:0 auto;line-height:1.5;}
+
+.sia-panel{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:1.4rem 1.4rem 1.2rem;}
+.sia-searchrow{display:flex;gap:.6rem;}
+.sia-input{flex:1;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:1.05rem;letter-spacing:.03em;
+  padding:.7rem .9rem;border:1.5px solid var(--kraft);border-radius:2px;background:#fffdf7;color:var(--ink);text-transform:uppercase;}
+.sia-input:focus-visible{outline:2px solid var(--red);outline-offset:1px;}
+.sia-btn{flex-shrink:0;font-weight:600;font-size:.88rem;background:var(--green);color:#fff;border:none;
+  padding:0 1.3rem;border-radius:2px;cursor:pointer;}
+.sia-btn:hover{background:var(--green-dark);}
+.sia-btn:focus-visible{outline:2px solid var(--red);}
+.sia-hint{margin-top:.6rem;font-size:.78rem;color:var(--ink-soft);}
+.sia-chips{margin-top:.9rem;display:flex;flex-wrap:wrap;gap:.45rem;}
+.sia-chip{font-family:'IBM Plex Mono',monospace;font-size:.76rem;background:var(--paper-dark);
+  border:1px solid var(--line);color:var(--ink-soft);padding:.28rem .55rem;border-radius:2px;cursor:pointer;}
+.sia-chip:hover{background:var(--line);color:var(--ink);}
+.sia-chip.atelier{background:#e4ecdf;border-color:#a8c2a3;color:#3c5a3e;font-weight:600;}
+.sia-chip.atelier:hover{background:#d3e0cc;}
+.sia-motstitre{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-soft);margin:1.2rem 0 .4rem;
+  padding-top:1rem;border-top:1px dashed var(--line);}
+.sia-resultats{margin-top:.9rem;display:flex;flex-direction:column;gap:.4rem;}
+.sia-resultat{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;
+  text-align:left;width:100%;background:var(--paper-dark);border:1px solid var(--line);
+  border-left:3px solid var(--kraft);border-radius:2px;padding:.6rem .75rem;cursor:pointer;
+  font-family:'IBM Plex Sans',sans-serif;}
+.sia-resultat:hover{background:var(--line);border-left-color:var(--red);}
+.sia-resultat:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.sia-rescote{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.85rem;
+  color:var(--ink);display:flex;align-items:center;gap:.4rem;}
+.sia-resatelier{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.08em;
+  text-transform:uppercase;background:#e4ecdf;color:#3c5a3e;border:1px solid #a8c2a3;
+  border-radius:2px;padding:.05rem .3rem;font-weight:400;}
+.sia-resint{font-size:.84rem;color:var(--ink);line-height:1.35;}
+.sia-resmeta{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--ink-soft);}
+.sia-chiptitre{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-soft);margin:.9rem 0 .35rem;}
+
+.sia-fiche{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:1.5rem;
+  margin-top:1.8rem;animation:sia-rise .35s ease;}
+@keyframes sia-rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.sia-fichehead{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;
+  border-bottom:1px dashed var(--line);padding-bottom:.8rem;margin-bottom:.8rem;}
+.sia-cote{font-family:'IBM Plex Mono',monospace;font-size:1.35rem;font-weight:600;}
+.sia-serie{font-size:.72rem;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase;margin-top:.15rem;}
+.sia-badge{font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:.25rem .5rem;border-radius:2px;white-space:nowrap;height:fit-content;}
+.sia-badge.libre{background:#e4ecdf;color:#3c5a3e;border:1px solid #a8c2a3;}
+.sia-badge.differee{background:#f5e3d8;color:#8a4a1f;border:1px solid #d9ab7c;}
+.sia-meta{display:grid;grid-template-columns:1fr 1fr;gap:.7rem 1.2rem;font-size:.86rem;margin:0 0 1.1rem;}
+.sia-meta .full{grid-column:1/-1;}
+.sia-meta dt{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:0 0 .15rem;}
+.sia-meta dd{margin:0;}
+
+.sia-loc{background:var(--green-dark);color:#e9e4d4;border-radius:3px;padding:1rem 1.1rem 1.2rem;position:relative;overflow:hidden;}
+.sia-loc.impact{animation:sia-shake .4s ease;}
+@keyframes sia-shake{0%,100%{transform:none;}20%{transform:translateX(-3px);}40%{transform:translateX(3px);}60%{transform:translateX(-2px);}80%{transform:translateX(2px);}}
+.sia-loctitle{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:#c7c0ab;margin-bottom:.6rem;}
+.sia-locpath{font-family:'Libre Baskerville',serif;font-size:1.05rem;margin-bottom:.4rem;}
+.sia-locpath b{color:#fff;}
+.sia-seg{display:inline-block;opacity:0;transform:translateY(4px);animation:sia-segin .35s ease forwards;}
+@keyframes sia-segin{to{opacity:1;transform:none;}}
+.sia-stamp{position:absolute;top:.9rem;right:1rem;width:78px;height:78px;border:2.5px solid var(--red);
+  border-radius:50%;color:var(--red);display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:'IBM Plex Mono',monospace;font-size:.6rem;font-weight:600;letter-spacing:.05em;
+  transform:rotate(-14deg) scale(.4);opacity:0;animation:sia-stampin .4s .15s cubic-bezier(.2,1.4,.4,1) forwards;}
+.sia-stamp::after{content:"";position:absolute;inset:6px;border:1px solid var(--red);border-radius:50%;opacity:.6;}
+@keyframes sia-stampin{to{transform:rotate(-14deg) scale(1);opacity:1;}}
+
+.sia-baylabel{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.1em;
+  text-transform:uppercase;color:#c7c0ab;margin:.9rem 0 .35rem;}
+.sia-epis{margin-bottom:.2rem;}
+.sia-episrangee{display:flex;align-items:flex-end;justify-content:center;gap:4px;
+  padding:.5rem 0 .35rem;overflow:hidden;}
+.sia-epi{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.sia-etagere{width:100%;height:34px;display:flex;flex-direction:column;justify-content:space-between;
+  border-left:2px solid rgba(233,228,212,.28);border-right:2px solid rgba(233,228,212,.28);
+  padding:1px 0;transition:transform .2s;}
+.sia-etagere span{display:block;height:3px;background:rgba(233,228,212,.22);border-radius:1px;}
+.sia-epi.cible .sia-etagere{border-color:var(--red);transform:translateY(-3px);}
+.sia-epi.cible .sia-etagere span{background:var(--red);box-shadow:0 0 6px rgba(165,52,42,.55);}
+.sia-epinum{font-family:'IBM Plex Mono',monospace;font-size:.52rem;color:#8f8977;line-height:1;}
+.sia-epi.cible .sia-epinum{color:#fff;font-weight:600;font-size:.6rem;}
+.sia-ellipse{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:#8f8977;
+  padding-bottom:14px;flex:0 0 auto;}
+.sia-scale{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:#8f8977;}
+.sia-baywrap{display:grid;grid-template-columns:auto 1fr;gap:.4rem;margin-top:.5rem;}
+.sia-tlabels{display:grid;gap:3px;}
+.sia-tlabel{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:#8f8977;display:flex;align-items:center;}
+.sia-grid{display:grid;gap:3px;}
+.sia-row{display:grid;gap:3px;}
+.sia-cell{aspect-ratio:1.6;background:rgba(233,228,212,.08);border:1px solid rgba(233,228,212,.12);border-radius:2px;padding:0;}
+.sia-cell.hit{background:var(--red);border-color:var(--red);box-shadow:0 0 0 2px rgba(165,52,42,.35);
+  cursor:pointer;position:relative;transition:transform .35s cubic-bezier(.3,1.5,.5,1),box-shadow .3s;}
+.sia-cell.hit:hover{transform:scale(1.12);}
+.sia-cell.hit:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+.sia-cell.hit::after{content:"";position:absolute;inset:22% 12%;border-radius:1px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.28) 0 1px,transparent 1px 5px);opacity:0;transition:opacity .3s;}
+.sia-cell.hit.ouvert{transform:translateY(-42%) scale(1.3) rotate(-4deg);
+  box-shadow:0 8px 14px rgba(0,0,0,.45),0 0 0 3px rgba(165,52,42,.45);z-index:3;}
+.sia-cell.hit.ouvert::after{opacity:1;}
+
+.sia-headrow{margin-bottom:2px;}
+.sia-collabel{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:#8f8977;text-align:center;line-height:1.4;}
+.sia-collabel.on{color:#fff;background:rgba(165,52,42,.55);border-radius:2px;font-weight:600;}
+.sia-corner{min-height:.9rem;}
+.sia-boxnote{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:#8f8977;margin-top:.5rem;
+  transition:color .3s;}
+.sia-boxnote[data-on="true"]{color:#f0d9d4;}
+
+.sia-scan{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:2rem 1.5rem;text-align:center;margin-top:1.8rem;}
+.sia-scanlabel{font-family:'IBM Plex Mono',monospace;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);}
+.sia-scantrack{margin-top:1rem;height:4px;background:var(--paper-dark);border-radius:2px;overflow:hidden;position:relative;}
+.sia-beam{position:absolute;top:0;left:-40%;width:40%;height:100%;
+  background:linear-gradient(90deg,transparent,var(--red),transparent);animation:sia-sweep .65s ease-in-out infinite;}
+@keyframes sia-sweep{from{left:-40%;}to{left:100%;}}
+
+.sia-empty{background:var(--card);border:1px dashed var(--red);border-radius:3px;padding:1.2rem 1.4rem;
+  color:var(--ink-soft);font-size:.9rem;margin-top:1.8rem;}
+.sia-empty b{color:var(--ink);}
+.sia-empty code{font-family:'IBM Plex Mono',monospace;background:var(--paper-dark);padding:.05rem .3rem;border-radius:2px;}
+
+.sia-filter{width:100%;font-size:.9rem;padding:.65rem .85rem;border:1.5px solid var(--kraft);
+  border-radius:2px;background:#fffdf7;color:var(--ink);margin-bottom:1.2rem;font-family:'IBM Plex Sans',sans-serif;}
+.sia-filter:focus-visible{outline:2px solid var(--red);outline-offset:1px;}
+.sia-list{display:flex;flex-direction:column;gap:.8rem;}
+.sia-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--kraft);
+  border-radius:2px;padding:1rem 1.2rem;}
+.sia-type{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+  color:#fff;background:var(--green);padding:.2rem .5rem;border-radius:2px;display:inline-block;}
+.sia-cardtitle{font-family:'Libre Baskerville',serif;font-size:1.05rem;margin:.4rem 0 0;}
+.sia-cardmeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.4rem 1rem;
+  font-size:.8rem;color:var(--ink-soft);margin:.7rem 0 .9rem;}
+.sia-cardmeta dt{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;margin:0;}
+.sia-cardmeta dd{margin:0;color:var(--ink);font-weight:600;}
+.sia-carddesc{font-size:.85rem;color:var(--ink-soft);margin:0 0 .9rem;line-height:1.5;}
+.sia-link{font-size:.8rem;font-weight:600;background:none;border:1px solid var(--green);color:var(--green);
+  padding:.4rem .8rem;border-radius:2px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
+.sia-link:hover{background:var(--green);color:#fff;}
+.sia-link:disabled{opacity:.4;cursor:not-allowed;}
+.sia-link:disabled:hover{background:none;color:var(--green);}
+.sia-link:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.sia-noresult{color:var(--ink-soft);font-size:.88rem;padding:.8rem .2rem;}
+
+.sia-foot{text-align:center;font-size:.74rem;color:var(--ink-soft);margin-top:2.2rem;line-height:1.6;}
+
+/* Module collecte */
+.sia-form{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:1.3rem;}
+.sia-champ{margin-bottom:.9rem;}
+.sia-champ label{display:block;font-family:'IBM Plex Mono',monospace;font-size:.66rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:.3rem;}
+.sia-champ input{width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:.92rem;
+  padding:.6rem .75rem;border:1.5px solid var(--kraft);border-radius:2px;background:#fffdf7;color:var(--ink);}
+.sia-champ input.mono{font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.sia-champ input:focus-visible{outline:2px solid var(--red);outline-offset:1px;}
+.sia-aide{font-size:.72rem;color:var(--ink-soft);margin-top:.25rem;}
+.sia-erreur{font-size:.78rem;color:var(--red);margin-bottom:.7rem;}
+.sia-valide{font-size:.8rem;color:#3c5a3e;background:#e4ecdf;border:1px solid #a8c2a3;
+  border-radius:2px;padding:.5rem .7rem;margin-bottom:.9rem;}
+.sia-noticeligne{display:flex;justify-content:space-between;align-items:center;gap:.7rem;
+  padding:.6rem 0;border-top:1px solid var(--paper-dark);flex-wrap:wrap;}
+.sia-noticecote{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.88rem;}
+.sia-noticeint{font-size:.82rem;color:var(--ink-soft);}
+.sia-noticeloc{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--ink-soft);}
+.sia-mini{font-size:.72rem;padding:.25rem .5rem;}
+.sia-inline{background:none;border:none;padding:0;font:inherit;color:var(--green);
+  text-decoration:underline;cursor:pointer;}
+.sia-inline:hover{color:var(--red);}
+.sia-inline:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.sia-loc4{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;}
+.sia-loc2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.sia-loc2 .sia-champ{margin-bottom:.9rem;}
+.sia-loc4 .sia-champ{margin-bottom:.9rem;}
+.sia-select{width:100%;font-family:'IBM Plex Mono',monospace;font-size:.92rem;padding:.6rem .5rem;
+  border:1.5px solid var(--kraft);border-radius:2px;background:#fffdf7;color:var(--ink);}
+.sia-select:focus-visible{outline:2px solid var(--red);outline-offset:1px;}
+
+/* Module classement */
+.sia-classligne{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--kraft);
+  border-radius:2px;padding:.8rem 1rem;margin-bottom:.6rem;}
+.sia-classligne.classe{border-left-color:var(--green);}
+.sia-classligne.avertissement{border-left-color:#c98a3a;}
+.sia-classligne.alerte{border-left-color:var(--red);}
+.sia-controle{display:flex;gap:.5rem;align-items:flex-start;margin-top:.6rem;padding:.5rem .65rem;
+  border-radius:2px;font-size:.78rem;line-height:1.45;}
+.sia-controle.ok{background:#e4ecdf;color:#3c5a3e;border:1px solid #a8c2a3;}
+.sia-controle.info{background:var(--paper-dark);color:var(--ink-soft);border:1px solid var(--line);}
+.sia-controle.avertissement{background:#f7ecd9;color:#8a5a1f;border:1px solid #dcbb84;}
+.sia-controle.alerte{background:#f5e0dc;color:#8a2f24;border:1px solid #d9a49c;}
+.sia-serieinfo{background:var(--green-dark);color:#e9e4d4;border-radius:3px;
+  padding:.9rem 1.1rem;margin-bottom:1.2rem;}
+.sia-serietitre{font-family:'Libre Baskerville',serif;font-size:1.02rem;display:flex;
+  align-items:baseline;gap:.6rem;flex-wrap:wrap;}
+.sia-seriecode{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.8rem;
+  background:var(--red);color:#fff;padding:.15rem .45rem;border-radius:2px;}
+.sia-seriegroupe{font-size:.78rem;color:#b6ae9a;margin-top:.3rem;}
+.sia-serieperiode{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#dcd3bd;margin-top:.35rem;}
+.sia-emplacement{display:flex;justify-content:space-between;align-items:center;gap:.6rem;
+  flex-wrap:wrap;margin-top:.6rem;padding:.55rem .7rem;background:#e4ecdf;border:1px solid #a8c2a3;
+  border-radius:2px;font-size:.8rem;color:#3c5a3e;}
+.sia-emplacement b{font-family:'IBM Plex Mono',monospace;}
+.sia-placement{margin-top:.7rem;padding-top:.7rem;border-top:1px dashed var(--line);}
+.sia-planhead{display:flex;justify-content:space-between;align-items:center;gap:.6rem;
+  flex-wrap:wrap;margin-bottom:.5rem;}
+.sia-ctrlpicto{font-family:'IBM Plex Mono',monospace;font-weight:600;flex:0 0 auto;}
+.sia-classhead{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
+.sia-sanscote{font-family:'IBM Plex Sans',sans-serif;font-weight:400;font-size:.78rem;
+  font-style:italic;color:#9a9280;}
+.sia-cotation{margin-top:.7rem;padding-top:.7rem;border-top:1px dashed var(--line);}
+.sia-cotation label{display:block;font-family:'IBM Plex Mono',monospace;font-size:.66rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:.35rem;}
+.sia-classcote{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.9rem;}
+.sia-classdates{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--ink-soft);}
+.sia-classint{font-size:.84rem;color:var(--ink-soft);margin:.2rem 0 .6rem;}
+.sia-plan{margin-top:1.8rem;}
+.sia-plangroupe{border-left:3px solid var(--green);padding-left:.9rem;margin-bottom:1rem;}
+.sia-plantitre{font-family:'Libre Baskerville',serif;font-size:1rem;margin:0 0 .1rem;}
+.sia-plansous{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--ink-soft);margin-bottom:.4rem;}
+.sia-planart{font-size:.82rem;padding:.25rem 0;border-top:1px solid var(--paper-dark);}
+.sia-planart b{font-family:'IBM Plex Mono',monospace;font-size:.78rem;}
+.sia-vide{background:var(--card);border:1px dashed var(--line);border-radius:3px;
+  padding:1.6rem;text-align:center;color:var(--ink-soft);font-size:.88rem;}
+@media (max-width:480px){
+  .sia-loc4{grid-template-columns:repeat(2,1fr);}
+  .sia-loc2{grid-template-columns:1fr;}
+}
+
+/* Modale — ouverture du classeur */
+.sia-modal{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
+  padding:1rem;background:rgba(20,17,12,.72);animation:sia-fadein .25s ease;}
+@keyframes sia-fadein{from{opacity:0;}to{opacity:1;}}
+.sia-classeur{position:relative;width:min(420px,92vw);max-height:88vh;perspective:1400px;}
+.sia-couv > *{position:relative;z-index:1;}
+.sia-couv{position:absolute;inset:0;z-index:4;transform-origin:left center;cursor:pointer;
+  border:none;font-family:inherit;text-align:center;overflow:hidden;
+  background:linear-gradient(115deg,#6d5738,#4a3a24 55%,#3a2d1c);
+  border-radius:3px 6px 6px 3px;box-shadow:0 14px 34px rgba(0,0,0,.55);
+  transform:rotateY(0deg);transition:transform 1s cubic-bezier(.6,0,.25,1),opacity .3s .75s;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.5rem;padding:1.5rem;}
+.sia-classeur.ouvert .sia-couv{transform:rotateY(-168deg);opacity:0;pointer-events:none;}
+.sia-couv:hover{filter:brightness(1.12);}
+.sia-couv:focus-visible{outline:3px solid var(--red);outline-offset:3px;}
+.sia-couvinvite{margin-top:1rem;font-family:'IBM Plex Mono',monospace;font-size:.62rem;
+  letter-spacing:.16em;text-transform:uppercase;color:#c3a978;
+  border:1px solid rgba(195,169,120,.5);border-radius:2px;padding:.3rem .6rem;
+  animation:sia-respire 2.4s ease-in-out infinite;}
+@keyframes sia-respire{0%,100%{opacity:.55;}50%{opacity:1;}}
+.sia-couv::before{content:"";position:absolute;left:0;top:0;bottom:0;width:16px;
+  background:linear-gradient(90deg,rgba(0,0,0,.45),transparent);}
+.sia-couvcote{font-family:'IBM Plex Mono',monospace;font-size:1.45rem;font-weight:600;
+  color:#f2e9d4;letter-spacing:.08em;margin:.3rem 0 .1rem;
+  text-shadow:0 1px 3px rgba(0,0,0,.6);}
+.sia-couvmention{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.16em;
+  text-transform:uppercase;color:#b09a72;}
+.sia-couvintitule{font-family:'Libre Baskerville',serif;font-size:.82rem;line-height:1.45;
+  color:#e6dcc4;max-width:26ch;margin:.25rem auto .1rem;
+  border-top:1px solid rgba(195,169,120,.35);border-bottom:1px solid rgba(195,169,120,.35);
+  padding:.5rem .2rem;}
+.sia-couvsangle{position:absolute;left:0;right:0;top:12%;height:14px;z-index:0;
+  background:linear-gradient(180deg,#8a6f45,#5e4a2c);opacity:.55;}
+
+.sia-interieur{background:var(--card);border-radius:3px;box-shadow:0 14px 34px rgba(0,0,0,.5);
+  overflow:hidden;max-height:88vh;display:flex;flex-direction:column;}
+.sia-interhead{padding:.8rem 1rem;border-bottom:1px solid var(--line);display:flex;
+  justify-content:space-between;align-items:center;gap:.6rem;}
+.sia-interhead .c{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.95rem;}
+.sia-close{background:none;border:1px solid var(--line);color:var(--ink-soft);border-radius:2px;
+  cursor:pointer;font-size:.85rem;padding:.2rem .5rem;line-height:1.2;}
+.sia-close:hover{background:var(--paper-dark);color:var(--ink);}
+.sia-close:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.sia-planche{overflow:auto;padding:1rem;background:repeating-linear-gradient(45deg,#e9e1cd 0 6px,#e5dcc6 6px 12px);}
+.sia-planchecote{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.8rem;
+  letter-spacing:.06em;color:#fff;background:var(--red);display:inline-block;
+  padding:.25rem .6rem;border-radius:2px;margin-bottom:.35rem;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);}
+.sia-plancheint{font-family:'Libre Baskerville',serif;font-size:.86rem;line-height:1.4;
+  color:var(--ink);background:rgba(250,247,238,.85);border-left:3px solid var(--kraft);
+  padding:.4rem .6rem;margin-bottom:.6rem;}
+.sia-planche img{display:block;width:100%;height:auto;border:1px solid rgba(0,0,0,.18);
+  box-shadow:0 6px 16px rgba(0,0,0,.28);background:#fff;}
+.sia-legende{padding:.7rem 1rem;font-size:.78rem;color:var(--ink-soft);line-height:1.5;border-top:1px solid var(--line);}
+.sia-interfoot{padding:.7rem 1rem;border-top:1px solid var(--line);display:flex;gap:.5rem;flex-wrap:wrap;}
+
+/* Écran de refus — article non communicable */
+.sia-scelle{background:#2a2620;min-height:230px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1rem;padding:2.4rem 1.2rem;}
+.sia-cadenas{background:none;border:none;cursor:pointer;padding:.4rem;line-height:0;
+  transition:transform .2s;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));}
+.sia-cadenas:hover{transform:scale(1.05);}
+.sia-cadenas:active{transform:scale(.95);}
+.sia-cadenas:focus-visible{outline:2px solid var(--red);outline-offset:4px;border-radius:6px;}
+.sia-cadenas.refuse{animation:sia-secousse .4s ease;}
+@keyframes sia-secousse{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-5px) rotate(-2deg);}
+  45%{transform:translateX(5px) rotate(2deg);}
+  70%{transform:translateX(-3px);}
+}
+.sia-cadenas .sia-anse{transition:transform .25s;transform-origin:28px 58px;}
+.sia-invite{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.1em;
+  text-transform:uppercase;color:#8f8672;}
+.sia-refus{font-family:'IBM Plex Mono',monospace;font-size:.9rem;letter-spacing:.12em;
+  text-transform:uppercase;color:#dc7a6e;animation:sia-refusin .25s ease;}
+@keyframes sia-refusin{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+.sia-refusmotif{font-family:'IBM Plex Sans',sans-serif;font-size:.76rem;color:#b0a793;
+  text-align:center;max-width:34ch;line-height:1.5;margin-top:.4rem;}
+
+@media (prefers-reduced-motion:reduce){
+  .sia-refus{animation:none;}
+  .sia-cadenas{transition:none;}
+}
+@media (prefers-reduced-motion:reduce){
+  .sia-couv{transition:none;}
+  .sia-couvinvite{animation:none;opacity:1;}
+  .sia-modal{animation:none;}
+}
+
+/* Répertoire numérique détaillé */
+.sia-back{background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:.74rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);cursor:pointer;padding:0 0 1rem;}
+.sia-back:hover{color:var(--red);}
+.sia-back:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.sia-rep{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:1.6rem;}
+.sia-rephead{border-bottom:2px solid var(--green-dark);padding-bottom:1rem;margin-bottom:1.4rem;}
+.sia-rephead h2{font-family:'Libre Baskerville',serif;font-size:1.45rem;font-weight:400;margin:.3rem 0 .2rem;}
+.sia-repsub{font-size:.85rem;color:var(--ink-soft);}
+.sia-repsec{margin-bottom:1.6rem;}
+.sia-repsec h3{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--red);margin:0 0 .7rem;padding-bottom:.35rem;border-bottom:1px dashed var(--line);}
+.sia-idtable{display:grid;grid-template-columns:auto 1fr;gap:.45rem 1.2rem;font-size:.85rem;}
+.sia-idtable dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:0;}
+.sia-idtable dd{margin:0;}
+.sia-block{margin-bottom:.9rem;}
+.sia-block h4{font-size:.82rem;font-weight:600;margin:0 0 .25rem;}
+.sia-block p{font-size:.86rem;line-height:1.6;color:var(--ink-soft);margin:0;}
+.sia-srclist{margin:0;padding-left:1.1rem;font-size:.86rem;line-height:1.7;color:var(--ink-soft);}
+
+.sia-part{border-left:3px solid var(--kraft);padding-left:.9rem;margin-bottom:1.3rem;}
+.sia-partnum{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--red);letter-spacing:.1em;}
+.sia-parttitle{font-family:'Libre Baskerville',serif;font-size:1rem;margin:.1rem 0;}
+.sia-partcotes{font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--ink-soft);margin-bottom:.6rem;}
+.sia-art{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:.3rem .9rem;
+  padding:.5rem 0;border-top:1px solid var(--paper-dark);font-size:.84rem;align-items:start;}
+.sia-art.vedette{background:rgba(165,52,42,.06);margin-left:-.5rem;padding-left:.5rem;border-left:2px solid var(--red);}
+.sia-artcote{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.8rem;}
+.sia-artdates{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--ink-soft);margin-top:.15rem;}
+.sia-artanalyse{color:var(--ink);line-height:1.5;}
+.sia-flag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.64rem;
+  background:#f5e3d8;color:#8a4a1f;border:1px solid #d9ab7c;padding:.1rem .35rem;border-radius:2px;margin-left:.4rem;}
+.sia-artlink{background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+  color:var(--green);cursor:pointer;padding:.25rem 0 0;text-decoration:underline;}
+.sia-artlink:hover{color:var(--red);}
+@media (max-width:480px){
+  .sia-art{grid-template-columns:1fr;}
+  .sia-idtable{grid-template-columns:1fr;gap:.15rem;}
+  .sia-idtable dd{margin-bottom:.5rem;}
+}
+
+.sia-vault{position:absolute;inset:0;z-index:50;display:flex;pointer-events:none;}
+.sia-leaf{flex:1;background:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,transparent 2px 22px),
+  linear-gradient(160deg,#4a3d2c,#2b241a 60%,#1c170f);box-shadow:inset 0 0 60px rgba(0,0,0,.6);
+  transition:transform .9s cubic-bezier(.7,0,.2,1);position:relative;}
+.sia-leaf::after{content:"";position:absolute;top:50%;left:50%;width:26px;height:26px;border:3px solid #6b5636;
+  border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(0,0,0,.35);}
+.sia-vault.open .sia-leaf.l{transform:translateX(-100%);}
+.sia-vault.open .sia-leaf.r{transform:translateX(100%);}
+
+.sia-dustlayer{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
+.sia-dust{position:absolute;bottom:-10px;width:3px;height:3px;border-radius:50%;
+  background:rgba(139,111,78,.35);animation:sia-drift linear infinite;}
+@keyframes sia-drift{from{transform:none;opacity:0;}10%{opacity:.6;}90%{opacity:.4;}to{transform:translateY(-100vh) translateX(20px);opacity:0;}}
+
+@media (max-width:480px){
+  .sia-topbar{padding:.8rem 1rem;}
+  .sia-frise{gap:.6rem;width:100%;justify-content:space-between;}
+  .sia-etiq{font-size:.62rem;}
+  .sia-num{width:23px;height:23px;font-size:.68rem;}
+  .sia-etape:not(:first-child)::before{width:10px;}
+  .sia-ressource{font-size:.66rem;padding:.25rem .45rem;}
+  .sia-nom{font-size:1rem;}
+  .sia-searchrow{flex-direction:column;}
+  .sia-btn{padding:.7rem 1.3rem;}
+  .sia-meta{grid-template-columns:1fr;}
+}
+@media (prefers-reduced-motion:reduce){
+  .sia-fiche,.sia-stamp,.sia-seg,.sia-loc.impact,.sia-beam{animation:none;opacity:1;transform:none;}
+  .sia-leaf{transition:none;}
+  .sia-dust{display:none;}
+  .sia-cell.hit{transition:none;}
+  .sia-cell.hit:hover{transform:none;}
+  .sia-cell.hit.ouvert{transform:none;box-shadow:0 0 0 3px #fff;}
+}
+`;
+
+/* ============================================================
+   Sous-composants
+   ============================================================ */
+
+/* ============================================================
+   Génération de l'image du document — dessine à la volée un
+   rapport dactylographié sur papier vieilli, puis le télécharge
+   en PNG. Aucun fichier externe n'est nécessaire.
+   ============================================================ */
+
+const CORPS_RAPPORT = [
+  ["h", "RAPPORT MENSUEL DE SECURITE"],
+  ["h2", "Travaux du fond — quartier Ouest, veine Sainte-Barbe"],
+  ["", ""],
+  ["l", "Periode : mars 1971"],
+  ["l", "Etabli par : l'ingenieur divisionnaire du fond"],
+  ["", ""],
+  ["s", "OBJET"],
+  ["p", "Compte rendu mensuel des conditions de securite dans le quartier"],
+  ["p", "Ouest, veine Sainte-Barbe, etage -820. Le present rapport est"],
+  ["p", "etabli en application du reglement general sur l'exploitation des"],
+  ["p", "mines de combustibles mineraux solides, et transmis a l'ingenieur"],
+  ["p", "en chef ainsi qu'au service de controle des mines."],
+  ["", ""],
+  ["s", "ETAT DE L'EXPLOITATION"],
+  ["t", "TAILLE     LONGUEUR   AVANCEMENT   EFFECTIF   OBSERVATIONS"],
+  ["p", "O-14        182 m      3,4 m/j       42        soutenement marchant"],
+  ["p", "O-16        165 m      2,9 m/j       38        toit delicat"],
+  ["p", "O-19        204 m      3,8 m/j       45        rendement conforme"],
+  ["p", "O-21         97 m      1,6 m/j       26        en equipement"],
+  ["", ""],
+  ["s", "AERAGE ET TENEUR EN GRISOU"],
+  ["p", "Debit d'air frais a l'entree du quartier : 62 m3/s, conforme aux"],
+  ["p", "prescriptions. Teneur moyenne en methane au retour d'air : 0,48 %."],
+  ["p", "Deux depassements ponctuels ont ete releves les 9 et 22 mars a la"],
+  ["p", "taille O-16 (0,92 % puis 1,05 %), suivis d'un arret immediat de"],
+  ["p", "l'abattage et d'un renforcement provisoire du circuit d'aerage."],
+  ["", ""],
+  ["s", "INCIDENTS"],
+  ["p", "04.03  taille O-14   chute de pierres au front, ITT 12 jours"],
+  ["p", "09.03  taille O-16   depassement grisou, arret de l'abattage"],
+  ["p", "17.03  galerie 812   deraillement de berlines, sans blessure"],
+  ["p", "22.03  taille O-16   depassement grisou, expertise demandee"],
+  ["", ""],
+  ["s", "CONCLUSION"],
+  ["p", "Les conditions d'exploitation demeurent satisfaisantes dans"],
+  ["p", "l'ensemble. La taille O-16 appelle toutefois une vigilance"],
+  ["p", "particuliere. Il est propose de differer l'ouverture de la taille"],
+  ["p", "O-23 tant que le circuit d'aerage secondaire n'aura pas ete revu."],
+];
+
+function dessinerDocument(cote, data) {
+  const W = 1240;
+  const H = 1754;
+  const cv = document.createElement("canvas");
+  cv.width = W;
+  cv.height = H;
+  const x = cv.getContext("2d");
+
+  // --- papier vieilli ---
+  x.fillStyle = "#efe7d3";
+  x.fillRect(0, 0, W, H);
+  const grad = x.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, "rgba(180,150,100,0.10)");
+  grad.addColorStop(0.5, "rgba(255,255,255,0)");
+  grad.addColorStop(1, "rgba(140,110,70,0.18)");
+  x.fillStyle = grad;
+  x.fillRect(0, 0, W, H);
+
+  // taches et piqûres
+  for (let i = 0; i < 60; i++) {
+    const r = 3 + Math.random() * 26;
+    x.beginPath();
+    x.arc(Math.random() * W, Math.random() * H, r, 0, Math.PI * 2);
+    x.fillStyle = `rgba(150,118,72,${0.02 + Math.random() * 0.05})`;
+    x.fill();
+  }
+  // grain
+  for (let i = 0; i < 5000; i++) {
+    x.fillStyle = `rgba(90,70,45,${Math.random() * 0.05})`;
+    x.fillRect(Math.random() * W, Math.random() * H, 1.4, 1.4);
+  }
+
+  const M = 110;
+  const INK = "#2e2a24";
+  const FADE = "#4a4239";
+
+  // --- en-tête ---
+  x.fillStyle = INK;
+  x.font = "bold 26px 'Courier New', monospace";
+  x.fillText("HOUILLERES DU BASSIN DE LORRAINE", M, 130);
+  x.font = "17px 'Courier New', monospace";
+  x.fillStyle = FADE;
+  x.fillText("Etablissement public a caractere industriel et commercial", M, 160);
+  x.fillText("Direction des travaux du fond  --  Siege de Merlebach", M, 185);
+
+  x.strokeStyle = "rgba(60,50,38,0.55)";
+  x.lineWidth = 1.6;
+  x.beginPath();
+  x.moveTo(M, 205);
+  x.lineTo(W - M, 205);
+  x.stroke();
+
+  // cote, à la main, en haut à droite
+  x.save();
+  x.translate(W - M - 30, 128);
+  x.rotate(-0.05);
+  x.fillStyle = "#7d2f26";
+  x.font = "bold 30px 'Courier New', monospace";
+  x.textAlign = "right";
+  x.fillText(cote, 0, 0);
+  x.restore();
+  x.textAlign = "left";
+
+  // --- corps dactylographié ---
+  let y = 265;
+  for (const [type, txt] of CORPS_RAPPORT) {
+    if (!txt) {
+      y += 16;
+      continue;
+    }
+    // frappe irrégulière de machine à écrire
+    const jx = (Math.random() - 0.5) * 1.8;
+    const jy = (Math.random() - 0.5) * 1.6;
+    const alpha = 0.78 + Math.random() * 0.22;
+
+    if (type === "h") {
+      x.font = "bold 24px 'Courier New', monospace";
+      x.fillStyle = `rgba(46,42,36,${alpha})`;
+      x.fillText(txt, M + jx, y + jy);
+      y += 38;
+    } else if (type === "h2") {
+      x.font = "bold 21px 'Courier New', monospace";
+      x.fillStyle = `rgba(46,42,36,${alpha})`;
+      x.fillText(txt, M + jx, y + jy);
+      y += 40;
+    } else if (type === "s") {
+      x.font = "bold 18px 'Courier New', monospace";
+      x.fillStyle = `rgba(46,42,36,${alpha})`;
+      x.fillText(txt, M + jx, y + jy);
+      x.strokeStyle = "rgba(70,58,44,0.4)";
+      x.lineWidth = 1;
+      x.beginPath();
+      x.moveTo(M, y + 7);
+      x.lineTo(M + txt.length * 11, y + 7);
+      x.stroke();
+      y += 34;
+    } else if (type === "t") {
+      x.font = "bold 16px 'Courier New', monospace";
+      x.fillStyle = `rgba(46,42,36,${alpha})`;
+      x.fillText(txt, M + jx, y + jy);
+      y += 28;
+    } else {
+      x.font = "17px 'Courier New', monospace";
+      x.fillStyle = `rgba(52,46,38,${alpha})`;
+      x.fillText(txt, M + jx, y + jy);
+      y += 27;
+    }
+  }
+
+  // --- signature ---
+  y += 30;
+  x.font = "17px 'Courier New', monospace";
+  x.fillStyle = FADE;
+  x.fillText("Merlebach, le 2 avril 1971", W - M - 300, y);
+  y += 30;
+  x.font = "bold 17px 'Courier New', monospace";
+  x.fillStyle = INK;
+  x.fillText("L'ingenieur divisionnaire", W - M - 300, y);
+
+  // paraphe manuscrit
+  x.save();
+  x.strokeStyle = "rgba(30,45,90,0.75)";
+  x.lineWidth = 2.6;
+  x.lineCap = "round";
+  x.beginPath();
+  const sx = W - M - 280;
+  const sy = y + 62;
+  x.moveTo(sx, sy);
+  x.bezierCurveTo(sx + 40, sy - 45, sx + 70, sy + 25, sx + 105, sy - 18);
+  x.bezierCurveTo(sx + 130, sy - 45, sx + 150, sy + 20, sx + 195, sy - 10);
+  x.stroke();
+  x.beginPath();
+  x.moveTo(sx + 20, sy + 14);
+  x.lineTo(sx + 175, sy + 6);
+  x.lineWidth = 1.6;
+  x.stroke();
+  x.restore();
+
+  // --- cachet du service ---
+  x.save();
+  x.translate(M + 150, H - 330);
+  x.rotate(-0.22);
+  x.strokeStyle = "rgba(150,45,36,0.62)";
+  x.fillStyle = "rgba(150,45,36,0.62)";
+  x.lineWidth = 4;
+  x.beginPath();
+  x.arc(0, 0, 95, 0, Math.PI * 2);
+  x.stroke();
+  x.beginPath();
+  x.arc(0, 0, 80, 0, Math.PI * 2);
+  x.lineWidth = 2;
+  x.stroke();
+  x.textAlign = "center";
+  x.font = "bold 19px 'Courier New', monospace";
+  x.fillText("ARCH. DEP.", 0, -14);
+  x.fillText("MOSELLE", 0, 10);
+  x.font = "15px 'Courier New', monospace";
+  x.fillText("CAITM", 0, 38);
+  x.restore();
+  x.textAlign = "left";
+
+  // --- mention de communicabilité ---
+  if (data.comm !== "libre") {
+    x.save();
+    x.translate(W - M - 250, H - 250);
+    x.rotate(-0.06);
+    x.strokeStyle = "rgba(150,45,36,0.8)";
+    x.lineWidth = 3;
+    x.strokeRect(-10, -34, 300, 54);
+    x.fillStyle = "rgba(150,45,36,0.85)";
+    x.font = "bold 24px 'Courier New', monospace";
+    x.fillText("NON COMMUNICABLE", 0, 4);
+    x.restore();
+  }
+
+  // --- pied de page ---
+  x.strokeStyle = "rgba(60,50,38,0.4)";
+  x.lineWidth = 1;
+  x.beginPath();
+  x.moveTo(M, H - 120);
+  x.lineTo(W - M, H - 120);
+  x.stroke();
+  x.font = "15px 'Courier New', monospace";
+  x.fillStyle = "rgba(74,66,57,0.85)";
+  x.fillText(
+    `${cote}  --  ${data.loc.site || "Saint-Julien-les-Metz"}, magasin ${data.loc.magasin}, epi ${data.loc.epi}, travee ${data.loc.travee}, tablette ${data.loc.tablette}`,
+    M,
+    H - 90
+  );
+  x.font = "italic 13px 'Courier New', monospace";
+  x.fillStyle = "rgba(120,108,90,0.9)";
+  x.fillText("Document fictif produit pour un atelier de valorisation des archives.", M, H - 62);
+
+  // ombre de bord, pour l'effet numérisé
+  const bord = x.createLinearGradient(0, 0, 60, 0);
+  bord.addColorStop(0, "rgba(70,55,35,0.30)");
+  bord.addColorStop(1, "rgba(70,55,35,0)");
+  x.fillStyle = bord;
+  x.fillRect(0, 0, 60, H);
+
+  return cv;
+}
+
+
+function ClasseurModal({ cote, data, onClose }) {
+  const [ouvert, setOuvert] = useState(false);
+  const bloque = data.comm !== "libre";
+  const [refus, setRefus] = useState(false);
+  const [src, setSrc] = useState(bloque ? null : data.image || null);
+
+  useEffect(() => {
+    const esc = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [onClose]);
+
+  // pas de reproduction jointe : on dessine le rapport dactylographié
+  useEffect(() => {
+    if (bloque || data.image) return;
+    try {
+      setSrc(dessinerDocument(cote, data).toDataURL("image/png"));
+    } catch (e) {
+      /* dessin indisponible */
+    }
+  }, [cote, data, bloque]);
+
+  const telecharger = () => {
+    if (!src || bloque) return;
+    const a = document.createElement("a");
+    a.href = src;
+    a.download = `${cote.replace(/[\s/]+/g, "-")}.${data.image ? "jpg" : "png"}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  return (
+    <div className="sia-modal" role="dialog" aria-modal="true" aria-label={`Document ${cote}`}
+         onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={`sia-classeur${ouvert ? " ouvert" : ""}`}>
+        <button
+          className="sia-couv"
+          onClick={() => setOuvert(true)}
+          aria-label={`Ouvrir le classeur ${cote}`}
+          tabIndex={ouvert ? -1 : 0}
+        >
+          <div className="sia-couvsangle" aria-hidden="true" />
+          <div className="sia-couvmention">Archives départementales de la Moselle</div>
+          <div className="sia-couvcote">{cote}</div>
+          <div className="sia-couvintitule">{data.intitule}</div>
+          <div className="sia-couvmention">{data.loc.site}</div>
+          <div className="sia-couvinvite">Cliquez pour ouvrir</div>
+        </button>
+
+        <div className="sia-interieur">
+          <div className="sia-interhead">
+            <span className="c">{cote}</span>
+            <button className="sia-close" onClick={onClose} aria-label="Fermer le classeur">
+              Fermer ✕
+            </button>
+          </div>
+
+          {bloque ? (
+            <div className="sia-scelle">
+              <button
+                className={`sia-cadenas${refus ? " refuse" : ""}`}
+                onClick={() => setRefus(true)}
+                aria-label="Tenter d'ouvrir le classeur"
+              >
+                <svg viewBox="0 0 100 130" width="86" height="112" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="siaMetal" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#b9b2a2" />
+                      <stop offset="45%" stopColor="#8d8677" />
+                      <stop offset="100%" stopColor="#5f5a4f" />
+                    </linearGradient>
+                    <linearGradient id="siaCorps" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#a8632f" />
+                      <stop offset="40%" stopColor="#8a4a22" />
+                      <stop offset="100%" stopColor="#5d3116" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* anse */}
+                  <path
+                    className="sia-anse"
+                    d="M28 58 V40 a22 22 0 0 1 44 0 V58"
+                    fill="none"
+                    stroke="url(#siaMetal)"
+                    strokeWidth="13"
+                    strokeLinecap="round"
+                  />
+                  {/* corps */}
+                  <rect x="14" y="55" width="72" height="60" rx="9" fill="url(#siaCorps)" />
+                  <rect x="14" y="55" width="72" height="60" rx="9" fill="none"
+                        stroke="rgba(0,0,0,.35)" strokeWidth="2" />
+                  {/* reflet */}
+                  <rect x="21" y="62" width="12" height="46" rx="6" fill="rgba(255,255,255,.14)" />
+                  {/* serrure */}
+                  <circle cx="50" cy="80" r="9" fill="#2a1a0d" />
+                  <path d="M46 80 h8 l-2 20 h-4 z" fill="#2a1a0d" />
+                </svg>
+              </button>
+
+              {refus ? (
+                <>
+                  <div className="sia-refus">Non communicable</div>
+                  <div className="sia-refusmotif">{data.commDetail}</div>
+                </>
+              ) : (
+                <div className="sia-invite">Appuyez sur le cadenas</div>
+              )}
+            </div>
+          ) : (
+            <div className="sia-planche">
+              <div className="sia-planchecote">{cote}</div>
+              <div className="sia-plancheint">{data.intitule}</div>
+              {src ? (
+                <img src={src} alt={`Reproduction de l'article ${cote} : ${data.intitule}`} />
+              ) : (
+                <div style={{ padding: "2rem", textAlign: "center", fontSize: ".85rem" }}>
+                  Chargement de la reproduction…
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="sia-legende">
+            <b>{data.intitule}</b>
+            <br />
+            {bloque
+              ? data.commDetail || "Article non communicable."
+              : `${data.imageLegende || "Reproduction numérisée jointe à l'article."} — ${data.dates}`}
+          </div>
+
+          <div className="sia-interfoot">
+            {!bloque && (
+              <button className="sia-link" onClick={telecharger}>Télécharger l'image</button>
+            )}
+            <button className="sia-link" onClick={onClose}>Reposer en magasin</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   Notices saisies par l'utilisateur — persistance best-effort
+   ============================================================ */
+
+const CLE_NOTICES = "sia:notices";
+
+/* Comparaison des cotes : on ignore la casse, les espaces multiples
+   et les espaces de séparation, pour que « 153 J 51 », « 153J51 »
+   et « 153  j  51 » désignent le même article. */
+function cleCote(v) {
+  return String(v || "")
+    .toUpperCase()
+    .replace(/[\s\u00A0]+/g, "")
+    .trim();
+}
+
+async function chargerNotices() {
+  try {
+    const r = await window.storage.get(CLE_NOTICES);
+    return r ? JSON.parse(r.value) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function sauverNotices(liste) {
+  try {
+    await window.storage.set(CLE_NOTICES, JSON.stringify(liste));
+  } catch (e) {
+    /* persistance indisponible : la session reste utilisable */
+  }
+}
+
+/* ============================================================
+   Cadre de classement — séries en usage dans les archives
+   départementales, proposées au classement des articles
+   ============================================================ */
+
+const CADRE = [
+  { groupe: "Archives anciennes (avant 1790)", debut: null, fin: 1790, series: [
+    { code: "B", label: "Cours et juridictions" },
+    { code: "C", label: "Administrations provinciales" },
+    { code: "G", label: "Clergé séculier" },
+    { code: "H", label: "Clergé régulier" },
+  ]},
+  { groupe: "Archives modernes (1800–1940)", debut: 1790, fin: 1940, series: [
+    { code: "M", label: "Administration générale et économie" },
+    { code: "N", label: "Administration départementale" },
+    { code: "O", label: "Administration communale" },
+    { code: "P", label: "Finances, cadastre, postes" },
+    { code: "Q", label: "Domaines, enregistrement, hypothèques" },
+    { code: "R", label: "Affaires militaires" },
+    { code: "T", label: "Enseignement, culture, sports" },
+    { code: "U", label: "Justice" },
+    { code: "X", label: "Assistance et prévoyance sociale" },
+    { code: "Y", label: "Établissements pénitentiaires" },
+    { code: "Z", label: "Sous-préfectures" },
+  ]},
+  { groupe: "Archives contemporaines (après 1940)", debut: 1940, fin: null, series: [
+    { code: "W", label: "Versements des administrations" },
+  ]},
+  { groupe: "Séries transverses", debut: null, fin: null, series: [
+    { code: "J", label: "Entrées par voie extraordinaire (fonds privés)" },
+    { code: "Fi", label: "Documents figurés" },
+    { code: "E DEPOT", label: "Archives communales déposées" },
+    { code: "ETP", label: "Organismes à personnalité juridique" },
+    { code: "HBL", label: "Houillères du Bassin de Lorraine", debut: 1946, fin: 2004 },
+    { code: "CAITM", label: "Archives industrielles et techniques" },
+  ]},
+];
+
+const CODES_SERIE = [];
+const LIBELLE_SERIE = {};
+const GROUPE_SERIE = {};
+CADRE.forEach((g) =>
+  g.series.forEach((se) => {
+    LIBELLE_SERIE[se.code] = se.label;
+    GROUPE_SERIE[se.code] = { ...g, serie: se };
+    CODES_SERIE.push(se.code);
+  })
+);
+
+/* La lettre de série fait partie de la cote : « 2 O 45 » se lit
+   sous-série 2, série O, article 45. On relit donc la cote pour
+   savoir quelle série elle annonce. */
+function serieDeCote(cote) {
+  const texte = String(cote || "")
+    .toUpperCase()
+    .replace(/[\/,;.]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  // les codes longs d'abord, pour que CAITM ne soit pas lu comme C
+  const codes = Object.keys(GROUPE_SERIE).sort((a, b) => b.length - a.length);
+  for (const code of codes) {
+    // la lettre peut être isolée (« 2 O 45 ») ou collée à la sous-série (« 1X 1 »)
+    const motif = new RegExp(`(?:^|[\\s\\d])${code.toUpperCase()}(?=[\\s\\d]|$)`);
+    if (motif.test(texte)) return code;
+  }
+  return null;
+}
+
+/* Certaines séries se cotent numéro puis code (472 HBL, 152 ETP,
+   2654 CAITM) ; les autres suivent le schéma sous-série, lettre,
+   article (2 O 45). Le numéro suit la dernière cote attribuée. */
+const SERIES_POSTFIXEES = ["HBL", "CAITM", "ETP", "E DEPOT"];
+
+function coteAuto(serie, notices) {
+  if (!serie) return "";
+  const existantes = [
+    ...Object.keys(FONDS),
+    ...notices.filter((n) => n.cote).map((n) => n.cote),
+  ].filter((c) => serieDeCote(c) === serie);
+
+  if (SERIES_POSTFIXEES.includes(serie)) {
+    const nums = existantes
+      .map((c) => {
+        const m = c.toUpperCase().match(/(\d+)\s*(?=[A-Z])/);
+        return m ? parseInt(m[1], 10) : 0;
+      })
+      .filter((n) => n > 0);
+    const suivant = (nums.length ? Math.max(...nums) : 0) + 1;
+    return `${suivant} ${serie}`;
+  }
+
+  // sous-série la plus employée dans la série, 1 par défaut
+  const sousSeries = existantes
+    .map((c) => {
+      const m = c.toUpperCase().match(/^\s*(\d+)/);
+      return m ? parseInt(m[1], 10) : null;
+    })
+    .filter(Boolean);
+  const sousSerie = sousSeries.length ? Math.max(...sousSeries) : 1;
+
+  const articles = existantes
+    .filter((c) => {
+      const m = c.toUpperCase().match(/^\s*(\d+)/);
+      return m && parseInt(m[1], 10) === sousSerie;
+    })
+    .map((c) => {
+      const m = c.toUpperCase().match(/(\d+)\s*$/);
+      return m ? parseInt(m[1], 10) : 0;
+    });
+  const suivant = (articles.length ? Math.max(...articles) : 0) + 1;
+  return `${sousSerie} ${serie} ${suivant}`;
+}
+
+/* Extrait les millésimes d'une chaîne de dates extrêmes,
+   quelle que soit sa forme : « 1872–1904 », « vers 1900 », « 1963 ». */
+function anneesDe(dates) {
+  const trouves = String(dates || "").match(/\d{4}/g);
+  if (!trouves || trouves.length === 0) return null;
+  const nb = trouves.map(Number).filter((a) => a > 1000 && a < 2200);
+  if (nb.length === 0) return null;
+  return { debut: Math.min(...nb), fin: Math.max(...nb) };
+}
+
+/* Contrôle de cohérence : le SIA ne donne pas la bonne réponse,
+   il signale que quelque chose ne colle pas et dit pourquoi. */
+function controlerCoherence(notice) {
+  if (!notice.serie) return null;
+  const ctx = GROUPE_SERIE[notice.serie];
+  if (!ctx) return null;
+
+  const annees = anneesDe(notice.dates);
+  if (!annees) {
+    return {
+      niveau: "info",
+      message: "Aucun millésime lisible dans les dates extrêmes : le contrôle n'a pas pu être fait.",
+    };
+  }
+
+  // les bornes propres à la série priment sur celles du groupe
+  const debut = ctx.serie.debut != null ? ctx.serie.debut : ctx.debut;
+  const fin = ctx.serie.fin != null ? ctx.serie.fin : ctx.fin;
+  const nom = `${notice.serie} — ${ctx.serie.label}`;
+
+  if (fin != null && annees.debut > fin) {
+    return {
+      niveau: "alerte",
+      message: `La série ${nom} s'arrête en ${fin}, or cet article commence en ${annees.debut}. Une série postérieure conviendrait mieux.`,
+    };
+  }
+  if (debut != null && annees.fin < debut) {
+    return {
+      niveau: "alerte",
+      message: `La série ${nom} commence en ${debut}, or cet article s'achève en ${annees.fin}. Une série antérieure conviendrait mieux.`,
+    };
+  }
+  if (fin != null && annees.fin > fin) {
+    return {
+      niveau: "avertissement",
+      message: `L'article court jusqu'en ${annees.fin}, au-delà de ${fin} où s'arrête la série ${nom}. Vérifiez si le fonds doit être scindé.`,
+    };
+  }
+  if (debut != null && annees.debut < debut) {
+    return {
+      niveau: "avertissement",
+      message: `L'article débute en ${annees.debut}, avant ${debut} où commence la série ${nom}. Documents rapportés, ou classement à revoir ?`,
+    };
+  }
+  return { niveau: "ok", message: `Dates cohérentes avec la série ${notice.serie}.` };
+}
+
+function notice2fonds(n) {
+  return {
+    serie: n.serie
+      ? `Série ${n.serie} — ${LIBELLE_SERIE[n.serie] || ""}`
+      : "Article non classé",
+    intitule: n.intitule,
+    dates: n.dates,
+    producteur: n.producteur || "non renseigné",
+    metrage:
+      n.mesure != null
+        ? n.support === "numerique"
+          ? `${n.mesure} Go (archives numériques)`
+          : `${n.mesure} ml (archives physiques)`
+        : "non renseigné",
+    comm: n.comm === "differee" ? "differee" : "libre",
+    commDetail: n.motif || undefined,
+    loc: n.loc || null,
+  };
+}
+
+function AisleMap({ epi, totalEpis }) {
+  // fenêtre d'épis centrée sur l'article, pour rester lisible même à 158 épis
+  const FENETRE = 15;
+  const demi = Math.floor(FENETRE / 2);
+  let debut = Math.max(1, epi - demi);
+  let fin = Math.min(totalEpis, debut + FENETRE - 1);
+  debut = Math.max(1, fin - FENETRE + 1);
+  const epis = Array.from({ length: fin - debut + 1 }, (_, i) => debut + i);
+
+  return (
+    <div className="sia-epis">
+      <div className="sia-episrangee">
+        {debut > 1 && <div className="sia-ellipse">…</div>}
+        {epis.map((n) => (
+          <div key={n} className={`sia-epi${n === epi ? " cible" : ""}`}>
+            <div className="sia-etagere" aria-hidden="true">
+              <span /><span /><span />
+            </div>
+            <div className="sia-epinum">{n}</div>
+          </div>
+        ))}
+        {fin < totalEpis && <div className="sia-ellipse">…</div>}
+      </div>
+      <div className="sia-scale">
+        <span>Épi 1</span>
+        <span>Épi {totalEpis}</span>
+      </div>
+    </div>
+  );
+}
+
+function BayGrid({ loc, cote, data }) {
+  const { travee, tablette, totalTravees, totalTablettes } = loc;
+  const rows = Array.from({ length: totalTablettes }, (_, i) => totalTablettes - i);
+  const cols = Array.from({ length: totalTravees }, (_, i) => i + 1);
+  const [ouvert, setOuvert] = useState(false);
+  const [classeur, setClasseur] = useState(false);
+
+  const sortirBoite = () => {
+    setOuvert(true);
+    setTimeout(() => setClasseur(true), 420);
+  };
+
+  const reposer = () => {
+    setClasseur(false);
+    setOuvert(false);
+  };
+
+  return (
+    <div className="sia-baywrap">
+      <div className="sia-tlabels" style={{ gridTemplateRows: `auto repeat(${totalTablettes},1fr)` }}>
+        <div className="sia-tlabel sia-corner" aria-hidden="true" />
+        {rows.map((n) => (
+          <div key={n} className="sia-tlabel">T{n}</div>
+        ))}
+      </div>
+
+      <div className="sia-grid">
+        <div className="sia-row sia-headrow" style={{ gridTemplateColumns: `repeat(${totalTravees},1fr)` }}>
+          {cols.map((t) => (
+            <div key={t} className={`sia-collabel${t === travee ? " on" : ""}`}>{t}</div>
+          ))}
+        </div>
+
+        {rows.map((n) => (
+          <div key={n} className="sia-row" style={{ gridTemplateColumns: `repeat(${totalTravees},1fr)` }}>
+            {cols.map((t) => {
+              const hit = n === tablette && t === travee;
+              if (!hit) return <div key={t} className="sia-cell" />;
+              return (
+                <button
+                  key={t}
+                  className={`sia-cell hit${ouvert ? " ouvert" : ""}`}
+                  title={`Travée ${travee}, tablette ${tablette} — ouvrir le classeur`}
+                  aria-label={`Article en travée ${travee}, tablette ${tablette}. Cliquer pour sortir la boîte et ouvrir le classeur.`}
+                  onClick={sortirBoite}
+                />
+              );
+            })}
+          </div>
+        ))}
+
+        <div className="sia-boxnote" data-on={ouvert}>
+          {ouvert
+            ? `Boîte sortie — classeur ${cote} ouvert`
+            : "Cliquez sur la boîte rouge pour sortir l'article et ouvrir le classeur"}
+        </div>
+      </div>
+
+      {classeur && <ClasseurModal cote={cote} data={data} onClose={reposer} />}
+    </div>
+  );
+}
+
+function Fiche({ cote, data }) {
+  const [impact, setImpact] = useState(false);
+
+  useEffect(() => {
+    setImpact(false);
+    const t = setTimeout(() => {
+      setImpact(true);
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(45, now + 0.18);
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.24);
+      } catch (e) {
+        /* audio indisponible */
+      }
+    }, 800);
+    return () => clearTimeout(t);
+  }, [cote]);
+
+  const segs = !data.loc ? [] : [
+    data.loc.site && { label: data.loc.site, value: null },
+    { label: "Magasin", value: data.loc.magasin },
+    { label: "Épi", value: data.loc.epi },
+    { label: "Travée", value: data.loc.travee },
+    { label: "Tablette", value: data.loc.tablette },
+  ].filter(Boolean);
+
+  return (
+    <div className="sia-fiche">
+      <div className="sia-fichehead">
+        <div>
+          <div className="sia-cote">{cote}</div>
+          <div className="sia-serie">{data.serie}</div>
+        </div>
+        <span className={`sia-badge ${data.comm === "libre" ? "libre" : "differee"}`}>
+          {data.comm === "libre" ? "Communicable" : "Non communicable"}
+        </span>
+      </div>
+
+      <dl className="sia-meta">
+        <div className="full"><dt>Analyse</dt><dd>{data.intitule}</dd></div>
+        <div><dt>Dates extrêmes</dt><dd>{data.dates}</dd></div>
+        <div><dt>Métrage linéaire</dt><dd>{data.metrage}</dd></div>
+        <div className="full"><dt>Producteur</dt><dd>{data.producteur}</dd></div>
+        {data.commDetail && (
+          <div className="full"><dt>Communicabilité</dt><dd>{data.commDetail}</dd></div>
+        )}
+      </dl>
+
+      {!data.loc ? (
+        <div className="sia-loc">
+          <div className="sia-loctitle">Localisation en magasin</div>
+          <div className="sia-locpath" style={{ marginBottom: 0 }}>
+            Article non encore placé en magasin.
+          </div>
+          <div className="sia-baylabel" style={{ marginTop: ".4rem" }}>
+            Décrit et classé, mais sans emplacement : il ne peut pas être communiqué.
+          </div>
+        </div>
+      ) : (
+      <div className={`sia-loc${impact ? " impact" : ""}`}>
+        <div className="sia-stamp">LOCALISÉ<br />SIA</div>
+        <div className="sia-loctitle">Localisation en magasin</div>
+        <div className="sia-locpath">
+          {segs.map((s, i) => (
+            <span key={i} className="sia-seg" style={{ animationDelay: `${0.05 + i * 0.2}s` }}>
+              {s.value === null ? s.label : <>{s.label} <b>{s.value}</b></>}
+              {i < segs.length - 1 ? " — " : ""}
+            </span>
+          ))}
+        </div>
+        <div className="sia-baylabel">Position dans le magasin</div>
+        <AisleMap epi={data.loc.epi} totalEpis={data.loc.totalEpis} />
+        <div className="sia-baylabel">Détail de la travée</div>
+        <BayGrid loc={data.loc} cote={cote} data={data} />
+      </div>
+      )}
+    </div>
+  );
+}
+
+function Repertoire({ rep, onBack, onOpenCote }) {
+  return (
+    <>
+      <button className="sia-back" onClick={onBack}>← Retour aux instruments</button>
+
+      <article className="sia-rep">
+        <div className="sia-rephead">
+          <div className="sia-eyebrow" style={{ textAlign: "left", marginBottom: 0 }}>
+            Répertoire numérique détaillé
+          </div>
+          <h2>{rep.titre}</h2>
+          <div className="sia-repsub">{rep.soustitre} — {rep.redacteur}</div>
+        </div>
+
+        <section className="sia-repsec">
+          <h3>Identification</h3>
+          <dl className="sia-idtable">
+            {rep.identification.map(([k, v]) => [
+              <dt key={`${k}-t`}>{k}</dt>,
+              <dd key={`${k}-d`}>{v}</dd>,
+            ])}
+          </dl>
+        </section>
+
+        <section className="sia-repsec">
+          <h3>Contexte</h3>
+          {rep.contexte.map((b) => (
+            <div className="sia-block" key={b.titre}>
+              <h4>{b.titre}</h4>
+              <p>{b.texte}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="sia-repsec">
+          <h3>Contenu et structure</h3>
+          {rep.contenu.map((b) => (
+            <div className="sia-block" key={b.titre}>
+              <h4>{b.titre}</h4>
+              <p>{b.texte}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="sia-repsec">
+          <h3>Conditions d'accès et d'utilisation</h3>
+          {rep.acces.map((b) => (
+            <div className="sia-block" key={b.titre}>
+              <h4>{b.titre}</h4>
+              <p>{b.texte}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="sia-repsec">
+          <h3>Sources complémentaires</h3>
+          <ul className="sia-srclist">
+            {rep.sourcesComplementaires.map((s, i) => <li key={i}>{s}</li>)}
+          </ul>
+        </section>
+
+        <section className="sia-repsec" style={{ marginBottom: 0 }}>
+          <h3>Plan de classement</h3>
+          {rep.plan.map((part) => (
+            <div className="sia-part" key={part.num}>
+              <div className="sia-partnum">PARTIE {part.num}</div>
+              <div className="sia-parttitle">{part.titre}</div>
+              <div className="sia-partcotes">{part.cotes}</div>
+              {part.articles.map((a) => (
+                <div className={`sia-art${a.vedette ? " vedette" : ""}`} key={a.cote}>
+                  <div>
+                    <div className="sia-artcote">{a.cote}</div>
+                    <div className="sia-artdates">{a.dates}</div>
+                  </div>
+                  <div>
+                    <div className="sia-artanalyse">
+                      {a.analyse}
+                      {a.restreint && <span className="sia-flag">Non communicable</span>}
+                    </div>
+                    {a.vedette && (
+                      <button className="sia-artlink" onClick={() => onOpenCote(a.cote)}>
+                        Localiser cet article →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </section>
+      </article>
+    </>
+  );
+}
+
+function ResultCard({ badge, titre, meta, description, coteEx, onOpen, onOpenRepertoire }) {
+  return (
+    <div className="sia-card">
+      <span className="sia-type">{badge}</span>
+      <div className="sia-cardtitle">{titre}</div>
+      <dl className="sia-cardmeta">
+        {meta.map(([k, v]) => (
+          <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
+        ))}
+      </dl>
+      {description && <p className="sia-carddesc">{description}</p>}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem" }}>
+        <button className="sia-link" onClick={() => onOpen(coteEx)}>
+          Consulter la cote {coteEx} →
+        </button>
+        {onOpenRepertoire && (
+          <button className="sia-link" onClick={onOpenRepertoire}>
+            Ouvrir le répertoire
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   Composant principal
+   ============================================================ */
+
+export default function SiaMoselle() {
+  const [tab, setTab] = useState("collecte");
+  const [query, setQuery] = useState("");
+  const [result, setResult] = useState(null); // {cote, data} | 'none' | null
+  const [scanning, setScanning] = useState(false);
+  const [vaultOpen, setVaultOpen] = useState(false);
+  const [vaultGone, setVaultGone] = useState(false);
+  const [irFilter, setIrFilter] = useState("");
+  const [repertoireOuvert, setRepertoireOuvert] = useState(false);
+  const [prodFilter, setProdFilter] = useState("");
+  const [notices, setNotices] = useState([]);
+  const noticesRef = useRef([]);
+  const [fIntitule, setFIntitule] = useState("");
+  const [fDates, setFDates] = useState("");
+  const [fErreur, setFErreur] = useState("");
+  const [fValide, setFValide] = useState("");
+  const [fProducteur, setFProducteur] = useState("");
+  const [fComm, setFComm] = useState("libre");
+  const [fMotif, setFMotif] = useState("");
+  const [mots, setMots] = useState("");
+  const [coCible, setCoCible] = useState(null);
+  const [coSaisie, setCoSaisie] = useState("");
+  const [coErreur, setCoErreur] = useState("");
+  const [placement, setPlacement] = useState(null);
+  const [cSite, setCSite] = useState("Saint-Julien-lès-Metz");
+  const [cMagasin, setCMagasin] = useState("B");
+  const [cEpi, setCEpi] = useState("");
+  const [cTravee, setCTravee] = useState("");
+  const [cTablette, setCTablette] = useState("");
+  const [cErreur, setCErreur] = useState("");
+  const [fSupport, setFSupport] = useState("physique");
+  const [fMesure, setFMesure] = useState("");
+  const scanTimer = useRef(null);
+  const reduced =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  useEffect(() => {
+    if (reduced) {
+      setVaultGone(true);
+      return;
+    }
+    const a = setTimeout(() => setVaultOpen(true), 250);
+    const b = setTimeout(() => setVaultGone(true), 1200);
+    return () => {
+      clearTimeout(a);
+      clearTimeout(b);
+    };
+  }, [reduced]);
+
+  useEffect(() => () => clearTimeout(scanTimer.current), []);
+
+  const dust = useMemo(
+    () =>
+      Array.from({ length: 18 }, () => ({
+        left: `${Math.random() * 100}%`,
+        duration: `${14 + Math.random() * 12}s`,
+        delay: `${Math.random() * 12}s`,
+      })),
+    []
+  );
+
+  useEffect(() => {
+    noticesRef.current = notices;
+  }, [notices]);
+
+  useEffect(() => {
+    let vivant = true;
+    chargerNotices().then((l) => {
+      if (vivant && Array.isArray(l) && l.length) setNotices(l);
+    });
+    return () => {
+      vivant = false;
+    };
+  }, []);
+
+  const enregistrerNotice = () => {
+    const intitule = fIntitule.trim();
+    const dates = fDates.trim();
+    const producteur = fProducteur.trim();
+    setFValide("");
+
+    if (!intitule || !dates || !producteur) {
+      setFErreur("Renseignez l'intitulé, les dates extrêmes et le producteur.");
+      return;
+    }
+    if (fComm !== "libre" && !fMotif.trim()) {
+      setFErreur("Indiquez le motif du délai de communicabilité.");
+      return;
+    }
+    const mesure = parseFloat(String(fMesure).replace(",", "."));
+    if (!fMesure || isNaN(mesure) || mesure <= 0) {
+      setFErreur(
+        fSupport === "physique"
+          ? "Indiquez le métrage linéaire, en mètres."
+          : "Indiquez le volume des données, en Go."
+      );
+      return;
+    }
+
+    const id = `a${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+    const liste = [
+      ...notices,
+      {
+        id,
+        cote: null,
+        intitule,
+        dates,
+        producteur,
+        comm: fComm,
+        motif: fComm === "libre" ? "" : fMotif.trim(),
+        support: fSupport,
+        mesure,
+        serie: "",
+        loc: null,
+      },
+    ];
+    noticesRef.current = liste;
+    setNotices(liste);
+    sauverNotices(liste);
+    setFErreur("");
+    setFValide(
+      "Article décrit. Étape suivante : le classer dans une série, ce qui lui donnera sa cote."
+    );
+    setFIntitule("");
+    setFDates("");
+    setFProducteur("");
+    setFComm("libre");
+    setFMotif("");
+    setFMesure("");
+  };
+
+  /* La cote est attribuée au classement : elle doit annoncer la série retenue. */
+  const coterNotice = (id, valeur) => {
+    const cote = valeur.trim().toUpperCase().replace(/\s+/g, " ");
+    setCoErreur("");
+    if (!cote) {
+      setCoErreur("Saisissez une cote.");
+      return;
+    }
+    const n = notices.find((a) => a.id === id);
+    if (!n || !n.serie) {
+      setCoErreur("Choisissez d'abord une série.");
+      return;
+    }
+    const inscrite = serieDeCote(cote);
+    if (!inscrite) {
+      setCoErreur(
+        `La cote ${cote} n'annonce aucune série du cadre de classement. Lettres admises : ${CODES_SERIE.join(", ")}.`
+      );
+      return;
+    }
+    if (inscrite !== n.serie) {
+      setCoErreur(
+        `La cote ${cote} annonce la série ${inscrite}, mais l'article est classé en série ${n.serie}.`
+      );
+      return;
+    }
+    if (
+      Object.keys(FONDS).some((c) => cleCote(c) === cleCote(cote)) ||
+      notices.some((a) => a.id !== id && a.cote && cleCote(a.cote) === cleCote(cote))
+    ) {
+      setCoErreur(`La cote ${cote} est déjà attribuée.`);
+      return;
+    }
+    const liste = notices.map((a) => (a.id === id ? { ...a, cote } : a));
+    noticesRef.current = liste;
+    setNotices(liste);
+    sauverNotices(liste);
+    setCoSaisie("");
+    setCoCible(null);
+  };
+
+  const classerNotice = (id, serie) => {
+    const liste = notices.map((n) => (n.id === id ? { ...n, serie } : n));
+    noticesRef.current = liste;
+    setNotices(liste);
+    sauverNotices(liste);
+    setCoErreur("");
+    if (serie) {
+      setCoCible(id);
+      setCoSaisie(coteAuto(serie, liste));
+    } else {
+      setCoCible(null);
+      setCoSaisie("");
+    }
+  };
+
+  /* Conservation : placer un article déjà décrit dans un emplacement libre. */
+  const placerNotice = (id) => {
+    setCErreur("");
+    const epi = parseInt(cEpi, 10);
+    const travee = parseInt(cTravee, 10);
+    const tablette = parseInt(cTablette, 10);
+    const totalEpis = cMagasin === "A" ? 158 : 100;
+
+    if (!epi || !travee || !tablette) {
+      setCErreur("Renseignez l'épi, la travée et la tablette.");
+      return;
+    }
+    if (epi < 1 || epi > totalEpis) {
+      setCErreur(`Le magasin ${cMagasin} compte ${totalEpis} épis.`);
+      return;
+    }
+    if (travee < 1 || travee > 10) {
+      setCErreur("La travée doit être comprise entre 1 et 10.");
+      return;
+    }
+    if (tablette < 1 || tablette > 6) {
+      setCErreur("La tablette doit être comprise entre 1 et 6.");
+      return;
+    }
+
+    const occupe = [
+      ...Object.entries(FONDS).map(([c, d]) => ({ cote: c, loc: d.loc })),
+      ...notices.filter((n) => n.loc && n.id !== id),
+    ].find(
+      (a) =>
+        a.loc.site === cSite &&
+        a.loc.magasin === cMagasin &&
+        a.loc.epi === epi &&
+        a.loc.travee === travee &&
+        a.loc.tablette === tablette
+    );
+    if (occupe) {
+      setCErreur(`Emplacement déjà occupé par ${occupe.cote}.`);
+      return;
+    }
+
+    const loc = {
+      site: cSite,
+      magasin: cMagasin,
+      epi,
+      travee,
+      tablette,
+      totalTravees: 10,
+      totalEpis,
+      totalTablettes: 6,
+    };
+    const liste = notices.map((n) => (n.id === id ? { ...n, loc } : n));
+    noticesRef.current = liste;
+    setNotices(liste);
+    sauverNotices(liste);
+    setPlacement(null);
+    setCEpi("");
+    setCTravee("");
+    setCTablette("");
+  };
+
+  const retirerNotice = (id) => {
+    const liste = notices.map((n) => (n.id === id ? { ...n, loc: null } : n));
+    noticesRef.current = liste;
+    setNotices(liste);
+    sauverNotices(liste);
+  };
+
+  /* Le plan de classement devient un vrai instrument de recherche. */
+  const editerInstrument = () => {
+    const classees = notices.filter((n) => n.serie);
+    const lignes = [
+      "=".repeat(64),
+      "ARCHIVES DEPARTEMENTALES DE LA MOSELLE",
+      "REPERTOIRE NUMERIQUE — travaux d'atelier",
+      "=".repeat(64),
+      "",
+      `Nombre d'articles decrits : ${classees.length}`,
+      "",
+    ];
+    CADRE.forEach((g) =>
+      g.series.forEach((se) => {
+        const arts = classees.filter((n) => n.serie === se.code);
+        if (arts.length === 0) return;
+        lignes.push("-".repeat(64));
+        lignes.push(`SERIE ${se.code} — ${se.label}`);
+        lignes.push(g.groupe);
+        lignes.push("-".repeat(64));
+        arts.forEach((n) => {
+          lignes.push(`${n.cote || "(sans cote)"}`);
+          lignes.push(`   ${n.intitule}`);
+          lignes.push(`   ${n.dates} · ${n.producteur || "producteur non renseigne"}`);
+          lignes.push(
+            `   ${n.mesure} ${n.support === "numerique" ? "Go" : "ml"} · ` +
+              `${n.comm === "differee" ? "non communicable" : "communicable"}`
+          );
+          lignes.push(
+            n.loc
+              ? `   ${n.loc.site} · magasin ${n.loc.magasin} · epi ${n.loc.epi} · ` +
+                `travee ${n.loc.travee} · tablette ${n.loc.tablette}`
+              : "   emplacement non attribue"
+          );
+          lignes.push("");
+        });
+      })
+    );
+    lignes.push("=".repeat(64));
+    lignes.push("Instrument de recherche produit en atelier.");
+    lignes.push("=".repeat(64));
+
+    try {
+      const blob = new Blob(["\uFEFF" + lignes.join("\n")], {
+        type: "text/plain;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "repertoire-atelier.txt";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (e) {
+      /* telechargement indisponible */
+    }
+  };
+
+  const supprimerNotice = (id) => {
+    const liste = notices.filter((n) => n.id !== id);
+    noticesRef.current = liste;
+    setNotices(liste);
+    sauverNotices(liste);
+  };
+
+  /* L'instrument de recherche numérique : on part d'une question,
+     pas d'une cote. C'est ce trajet que fait un lecteur en salle. */
+  const sansAccent = (v) =>
+    String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  const resultatsMots = (() => {
+    const q = sansAccent(mots).trim();
+    if (q.length < 2) return null;
+    const termes = q.split(/\s+/);
+    const index = [
+      ...Object.entries(FONDS).map(([cote, d]) => ({
+        cote,
+        intitule: d.intitule,
+        dates: d.dates,
+        producteur: d.producteur,
+        serie: d.serie,
+        atelier: false,
+      })),
+      ...notices
+        .filter((n) => n.cote)
+        .map((n) => ({
+          cote: n.cote,
+          intitule: n.intitule,
+          dates: n.dates,
+          producteur: n.producteur,
+          serie: n.serie ? `Série ${n.serie}` : "",
+          atelier: true,
+        })),
+    ];
+    return index.filter((a) => {
+      const champ = sansAccent(
+        `${a.cote} ${a.intitule} ${a.dates} ${a.producteur} ${a.serie}`
+      );
+      return termes.every((t) => champ.includes(t));
+    });
+  })();
+
+  const runSearch = (raw) => {
+    const key = String(raw).trim().toUpperCase().replace(/\s+/g, " ");
+    if (!key) {
+      setResult(null);
+      return;
+    }
+    const cle = cleCote(key);
+    const listeCourante = noticesRef.current;
+    const saisie = listeCourante.find((n) => cleCote(n.cote) === cle);
+    const coteFonds = Object.keys(FONDS).find((c) => cleCote(c) === cle);
+    const data = (coteFonds && FONDS[coteFonds]) || (saisie ? notice2fonds(saisie) : undefined);
+    const affichee = coteFonds || (saisie && saisie.cote) || key;
+    if (!data) {
+      setScanning(false);
+      setResult({ cote: affichee, data: null });
+      return;
+    }
+    if (reduced) {
+      setResult({ cote: affichee, data });
+      return;
+    }
+    setScanning(true);
+    setResult(null);
+    clearTimeout(scanTimer.current);
+    scanTimer.current = setTimeout(() => {
+      setScanning(false);
+      setResult({ cote: affichee, data });
+    }, 700);
+  };
+
+  const openCote = (cote) => {
+    setTab("recherche");
+    setIrFilter("");
+    setRepertoireOuvert(false);
+    setQuery(cote);
+    runSearch(cote);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  /* Le filtre reconnaît un code de série et en rappelle le contenu :
+     taper « W » doit apprendre ce que W recouvre. */
+  const serieFiltree = (() => {
+    const q = irFilter.trim().toUpperCase();
+    if (!q) return null;
+    return GROUPE_SERIE[q] || GROUPE_SERIE[Object.keys(GROUPE_SERIE).find(
+      (c) => c.toUpperCase() === q
+    )] || null;
+  })();
+
+  const filteredIR = INSTRUMENTS.filter((ir) => {
+    const q = irFilter.trim().toLowerCase();
+    if (!q) return true;
+    return [ir.titre, ir.type, ir.niveau, ir.cotesExtremes, ir.coteEx].some((f) =>
+      f.toLowerCase().includes(q)
+    );
+  });
+
+  /* Respect des fonds : on regroupe les articles collectés par origine. */
+  const producteursAtelier = (() => {
+    const carte = new Map();
+    notices.forEach((n) => {
+      const nom = (n.producteur || "non renseigné").trim();
+      if (!carte.has(nom)) carte.set(nom, { nom, cotes: [], series: [] });
+      const e = carte.get(nom);
+      e.cotes.push(n.cote || "sans cote");
+      if (n.serie && !e.series.includes(n.serie)) e.series.push(n.serie);
+    });
+    return [...carte.values()];
+  })();
+
+  const filteredProd = PRODUCTEURS.filter((p) => {
+    const q = prodFilter.trim().toLowerCase();
+    if (!q) return true;
+    return [p.nom, p.type, p.fondsAssocies, p.coteEx].some((f) => f.toLowerCase().includes(q));
+  });
+
+  /* La chaîne archivistique, dans l'ordre où les gestes s'accomplissent.
+     Le compteur montre combien d'articles ont franchi chaque étape. */
+  const ETAPES = [
+    { id: "collecte", label: "Collecter", fait: notices.length },
+    { id: "classement", label: "Classer", fait: notices.filter((n) => n.cote).length },
+    { id: "conservation", label: "Conserver", fait: notices.filter((n) => n.loc).length },
+    {
+      id: "recherche",
+      label: "Communiquer",
+      fait: notices.filter((n) => n.loc && n.cote).length,
+    },
+  ];
+
+  const allerA = (id) => {
+    if (id === "recherche") {
+      setQuery("");
+      setMots("");
+      setResult(null);
+      setScanning(false);
+      clearTimeout(scanTimer.current);
+    }
+    if (id !== "classement") {
+      setIrFilter("");
+      setRepertoireOuvert(false);
+    }
+    if (id !== "conservation") {
+      setPlacement(null);
+      setCErreur("");
+    }
+    setTab(id);
+  };
+
+  return (
+    <div className="sia">
+      <style>{CSS}</style>
+
+      {!vaultGone && (
+        <div className={`sia-vault${vaultOpen ? " open" : ""}`} aria-hidden="true">
+          <div className="sia-leaf l" />
+          <div className="sia-leaf r" />
+        </div>
+      )}
+
+      {!reduced && (
+        <div className="sia-dustlayer" aria-hidden="true">
+          {dust.map((d, i) => (
+            <div
+              key={i}
+              className="sia-dust"
+              style={{ left: d.left, animationDuration: d.duration, animationDelay: d.delay }}
+            />
+          ))}
+        </div>
+      )}
+
+      <header className="sia-topbar">
+        <div className="sia-brand">
+          <span className="sia-sigle">SIA</span>
+          <span className="sia-nom">Archives départementales de la Moselle</span>
+        </div>
+        <nav className="sia-frise" aria-label="Étapes du traitement archivistique">
+          <ol className="sia-etapes">
+            {ETAPES.map((e, i) => (
+              <li key={e.id} className="sia-etape">
+                <button
+                  data-active={tab === e.id}
+                  data-fait={e.fait > 0}
+                  onClick={() => allerA(e.id)}
+                >
+                  <span className="sia-num">{i + 1}</span>
+                  <span className="sia-etiq">{e.label}</span>
+                  <span className="sia-compte">{e.fait}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+          <button
+            className="sia-ressource"
+            data-active={tab === "producteurs"}
+            onClick={() => allerA("producteurs")}
+          >
+            Producteurs
+          </button>
+        </nav>
+      </header>
+
+      <main className="sia-wrap">
+        {tab === "recherche" && (
+          <>
+            <div className="sia-intro">
+              <div className="sia-eyebrow">Module de communication</div>
+              <h1>Communiquer un article</h1>
+              <p>
+                Saisissez une cote pour afficher sa notice et sa localisation exacte : site,
+                magasin, épi, travée, tablette. Les cotes du service et celles collectées en
+                atelier répondent de la même façon.
+              </p>
+            </div>
+
+            <div className="sia-panel">
+              <div className="sia-searchrow">
+                <label htmlFor="cote" className="sr-only" style={{ display: "none" }}>Cote</label>
+                <input
+                  id="cote"
+                  className="sia-input"
+                  value={query}
+                  placeholder="Ex. 472 HBL"
+                  autoComplete="off"
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && runSearch(query)}
+                />
+                <button className="sia-btn" onClick={() => runSearch(query)}>
+                  Rechercher
+                </button>
+              </div>
+              <div className="sia-hint">Appuyez sur Entrée ou cliquez sur Rechercher.</div>
+
+              <div className="sia-motstitre">Ou cherchez sans connaître la cote</div>
+              <input
+                className="sia-filter"
+                style={{ marginBottom: ".4rem" }}
+                value={mots}
+                placeholder="Mine, Sarreguemines, hôpital, 1963…"
+                autoComplete="off"
+                onChange={(e) => setMots(e.target.value)}
+              />
+              <div className="sia-hint" style={{ marginTop: 0 }}>
+                Intitulé, producteur, dates ou série. C'est le rôle de l'instrument de recherche :
+                mener d'une question jusqu'à une cote.
+              </div>
+
+              {resultatsMots && (
+                <div className="sia-resultats">
+                  {resultatsMots.length === 0 ? (
+                    <div className="sia-noresult">
+                      Aucun article ne répond à cette recherche.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="sia-chiptitre">
+                        {resultatsMots.length} article
+                        {resultatsMots.length > 1 ? "s" : ""} trouvé
+                        {resultatsMots.length > 1 ? "s" : ""}
+                      </div>
+                      {resultatsMots.map((a) => (
+                        <button
+                          key={a.cote}
+                          className="sia-resultat"
+                          onClick={() => {
+                            setQuery(a.cote);
+                            runSearch(a.cote);
+                          }}
+                        >
+                          <span className="sia-rescote">
+                            {a.cote}
+                            {a.atelier && <span className="sia-resatelier">atelier</span>}
+                          </span>
+                          <span className="sia-resint">{a.intitule}</span>
+                          <span className="sia-resmeta">
+                            {a.dates} · {a.producteur}
+                          </span>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+              {notices.some((n) => n.cote) && (
+                <>
+                  <div className="sia-chiptitre">Cotes collectées en atelier</div>
+                  <div className="sia-chips">
+                    {notices.filter((n) => n.cote).map((n) => (
+                      <button
+                        key={n.id}
+                        className="sia-chip atelier"
+                        onClick={() => {
+                          setQuery(n.cote);
+                          runSearch(n.cote);
+                        }}
+                      >
+                        {n.cote}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <div className="sia-chiptitre">Cotes de démonstration</div>
+              <div className="sia-chips">
+                {Object.keys(FONDS).map((c) => (
+                  <button
+                    key={c}
+                    className="sia-chip"
+                    onClick={() => {
+                      setQuery(c);
+                      runSearch(c);
+                    }}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {scanning && (
+              <div className="sia-scan">
+                <div className="sia-scanlabel">Repérage en cours dans les magasins…</div>
+                <div className="sia-scantrack"><div className="sia-beam" /></div>
+              </div>
+            )}
+
+            {!scanning && result && result.data && (
+              <Fiche key={result.cote} cote={result.cote} data={result.data} />
+            )}
+
+            {!scanning && result && !result.data && (
+              <div className="sia-empty">
+                <b>Aucune notice ne correspond à « {result.cote} ».</b>
+                <br />
+                {notices.length > 0 ? (
+                  <>
+                    Cotes collectées en atelier actuellement enregistrées :{" "}
+                    {notices.filter((n) => n.cote).map((n) => n.cote).join(", ") || "aucune"}.
+                  </>
+                ) : (
+                  <>
+                    Aucun article n'a encore été collecté. Vérifiez le format de la cote
+                    (par exemple <code>472 HBL</code>) ou choisissez l'une des cotes ci-dessus.
+                  </>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === "producteurs" && (
+          <>
+            <div className="sia-intro">
+              <div className="sia-eyebrow">Module des producteurs</div>
+              <h1>Identifier les producteurs</h1>
+              <p>
+                Services, collectivités et entreprises dont les fonds sont conservés. C'est
+                l'origine des documents, et non leur sujet, qui commande le classement.
+              </p>
+            </div>
+            <input
+              className="sia-filter"
+              value={prodFilter}
+              placeholder="Filtrer par nom, type ou cote…"
+              onChange={(e) => setProdFilter(e.target.value)}
+            />
+            {producteursAtelier.length > 0 && (
+              <div className="sia-plan" style={{ marginTop: 0, marginBottom: "1.6rem" }}>
+                <div className="sia-eyebrow" style={{ textAlign: "left" }}>
+                  Producteurs identifiés en atelier ({producteursAtelier.length})
+                </div>
+                {producteursAtelier.map((pa) => (
+                  <div className="sia-plangroupe" key={pa.nom}>
+                    <div className="sia-plantitre">{pa.nom}</div>
+                    <div className="sia-plansous">
+                      {pa.cotes.length} article{pa.cotes.length > 1 ? "s" : ""}
+                      {pa.series.length > 0 ? ` · série${pa.series.length > 1 ? "s" : ""} ${pa.series.join(", ")}` : " · non classé"}
+                    </div>
+                    {pa.cotes.map((c) => (
+                      <div className="sia-planart" key={c}>
+                        <b>{c}</b>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="sia-eyebrow" style={{ textAlign: "left" }}>
+              Producteurs du service
+            </div>
+            <div className="sia-list">
+              {filteredProd.length === 0 ? (
+                <div className="sia-noresult">Aucun producteur ne correspond à ce filtre.</div>
+              ) : (
+                filteredProd.map((p) => (
+                  <ResultCard
+                    key={p.coteEx}
+                    badge={p.type}
+                    titre={p.nom}
+                    meta={[
+                      ["Dates d'activité", p.dates],
+                      ["Fonds associés", p.fondsAssocies],
+                    ]}
+                    description={p.description}
+                    coteEx={p.coteEx}
+                    onOpen={openCote}
+                  />
+                ))
+              )}
+            </div>
+          </>
+        )}
+
+        {tab === "collecte" && (
+          <>
+            <div className="sia-intro">
+              <div className="sia-eyebrow">Module de collecte</div>
+              <h1>Collecter un article</h1>
+              <p>
+                Décrivez l'article qui entre dans le service : intitulé, dates extrêmes,
+                producteur, communicabilité et importance matérielle. Sa cote lui sera donnée
+                au classement, son emplacement à la conservation.
+              </p>
+            </div>
+
+            <div className="sia-form">
+              {fErreur && <div className="sia-erreur">{fErreur}</div>}
+              {fValide && <div className="sia-valide">{fValide}</div>}
+
+              <div className="sia-champ">
+                <label htmlFor="f-int">Intitulé</label>
+                <input
+                  id="f-int"
+                  value={fIntitule}
+                  placeholder="Ex. Registre de délibérations du conseil municipal"
+                  autoComplete="off"
+                  onChange={(e) => setFIntitule(e.target.value)}
+                />
+                <div className="sia-aide">Ce que contient l'article, en une phrase.</div>
+              </div>
+
+              <div className="sia-champ">
+                <label htmlFor="f-dates">Dates extrêmes</label>
+                <input
+                  id="f-dates"
+                  className="mono"
+                  value={fDates}
+                  placeholder="Ex. 1872–1904"
+                  autoComplete="off"
+                  onChange={(e) => setFDates(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && enregistrerNotice()}
+                />
+                <div className="sia-aide">Du document le plus ancien au plus récent.</div>
+              </div>
+
+              <div className="sia-champ">
+                <label htmlFor="f-prod">Producteur</label>
+                <input
+                  id="f-prod"
+                  value={fProducteur}
+                  placeholder="Ex. Commune de Sarreguemines"
+                  autoComplete="off"
+                  onChange={(e) => setFProducteur(e.target.value)}
+                />
+                <div className="sia-aide">
+                  Qui a produit ou reçu ces documents dans son activité. C'est l'origine qui
+                  détermine le classement, pas le sujet.
+                </div>
+              </div>
+
+              <div className="sia-champ">
+                <label htmlFor="f-comm">Communicabilité</label>
+                <select
+                  id="f-comm"
+                  className="sia-select"
+                  value={fComm}
+                  onChange={(e) => setFComm(e.target.value)}
+                >
+                  <option value="libre">Communicable</option>
+                  <option value="differee">Non communicable</option>
+                </select>
+                <div className="sia-aide">
+                  Vie privée, secret médical, dossiers de personnel : le document reste décrit,
+                  mais n'est pas présenté en salle de lecture.
+                </div>
+              </div>
+
+              {fComm !== "libre" && (
+                <div className="sia-champ">
+                  <label htmlFor="f-motif">Motif du délai</label>
+                  <input
+                    id="f-motif"
+                    value={fMotif}
+                    placeholder="Ex. Non communicable — 50 ans (vie privée)"
+                    autoComplete="off"
+                    onChange={(e) => setFMotif(e.target.value)}
+                  />
+                  <div className="sia-aide">
+                    25 ans secret industriel · 50 ans vie privée · 75 ans état civil et justice ·
+                    120 ans dossiers médicaux.
+                  </div>
+                </div>
+              )}
+
+              <div className="sia-loc2">
+                <div className="sia-champ">
+                  <label htmlFor="f-support">Support</label>
+                  <select
+                    id="f-support"
+                    className="sia-select"
+                    value={fSupport}
+                    onChange={(e) => setFSupport(e.target.value)}
+                  >
+                    <option value="physique">Archives physiques</option>
+                    <option value="numerique">Archives numériques</option>
+                  </select>
+                </div>
+
+                <div className="sia-champ">
+                  <label htmlFor="f-mesure">
+                    {fSupport === "physique" ? "Métrage linéaire (ml)" : "Volume (Go)"}
+                  </label>
+                  <input
+                    id="f-mesure"
+                    className="mono"
+                    inputMode="decimal"
+                    value={fMesure}
+                    placeholder={fSupport === "physique" ? "Ex. 0,80" : "Ex. 12,5"}
+                    autoComplete="off"
+                    onChange={(e) => setFMesure(e.target.value)}
+                  />
+                  <div className="sia-aide">
+                    {fSupport === "physique"
+                      ? "Longueur occupée sur la tablette, en mètres."
+                      : "Volume des fichiers, en gigaoctets."}
+                  </div>
+                </div>
+              </div>
+
+              <button className="sia-btn" style={{ padding: ".65rem 1.2rem" }} onClick={enregistrerNotice}>
+                Enregistrer la notice
+              </button>
+            </div>
+
+            {notices.length > 0 && (
+              <div style={{ marginTop: "1.6rem" }}>
+                <div className="sia-eyebrow" style={{ textAlign: "left" }}>
+                  Notices saisies ({notices.length})
+                </div>
+                {notices.map((n) => (
+                  <div className="sia-noticeligne" key={n.id}>
+                    <div>
+                      <div className="sia-noticecote">
+                        {n.cote || <span className="sia-sanscote">sans cote</span>}
+                      </div>
+                      <div className="sia-noticeint">
+                        {n.intitule} — {n.dates}
+                        {n.mesure != null && (n.support === "numerique" ? ` · ${n.mesure} Go` : ` · ${n.mesure} ml`)}
+                      </div>
+                      <div className="sia-noticeloc">
+                        {n.loc
+                          ? `Magasin ${n.loc.magasin} · épi ${n.loc.epi} · travée ${n.loc.travee} · tablette ${n.loc.tablette}`
+                          : n.serie
+                          ? "Classé, en attente de cote ou d'emplacement"
+                          : "En attente de classement"}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: ".4rem" }}>
+                      {!n.cote ? (
+                        <button
+                          className="sia-link sia-mini"
+                          onClick={() => allerA("classement")}
+                        >
+                          Étape 2 · Classer et coter
+                        </button>
+                      ) : !n.loc ? (
+                        <button
+                          className="sia-link sia-mini"
+                          onClick={() => {
+                            allerA("conservation");
+                            setPlacement(n.id);
+                            if (typeof window !== "undefined")
+                              window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                        >
+                          Étape 3 · Placer en magasin
+                        </button>
+                      ) : (
+                        <button className="sia-link sia-mini" onClick={() => openCote(n.cote)}>
+                          Étape 4 · Communiquer
+                        </button>
+                      )}
+                      <button className="sia-link sia-mini" onClick={() => supprimerNotice(n.id)}>
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === "classement" && !repertoireOuvert && (
+          <>
+            <div className="sia-intro">
+              <div className="sia-eyebrow">Module de classement</div>
+              <h1>Classer et coter</h1>
+              <p>
+                Rattachez chaque article à une série du cadre de classement, puis attribuez-lui
+                sa cote : c'est le classement qui produit l'adresse du document, jamais l'inverse.
+              </p>
+            </div>
+
+            {notices.length === 0 ? (
+              <div className="sia-vide">
+                Aucun article à classer. Commencez par en collecter dans l'onglet Collecter.
+              </div>
+            ) : (
+              <>
+                {notices.map((n) => {
+                  const ctrl = n.serie ? controlerCoherence(n) : null;
+                  const etat = ctrl ? ctrl.niveau : null;
+                  return (
+                    <div
+                      className={`sia-classligne${n.cote ? " classe" : ""}${
+                        etat === "alerte" || etat === "avertissement" ? " " + etat : ""
+                      }`}
+                      key={n.id}
+                    >
+                      <div className="sia-classhead">
+                        <span className="sia-classcote">
+                          {n.cote || <span className="sia-sanscote">sans cote</span>}
+                        </span>
+                        <span className="sia-classdates">{n.dates}</span>
+                      </div>
+                      <div className="sia-classint">
+                        {n.intitule} — {n.producteur}
+                      </div>
+
+                      <select
+                        className="sia-select"
+                        value={n.serie || ""}
+                        onChange={(e) => classerNotice(n.id, e.target.value)}
+                        aria-label={`Série de l'article ${n.intitule}`}
+                      >
+                        <option value="">— Choisir une série —</option>
+                        {CADRE.map((g) => (
+                          <optgroup key={g.groupe} label={g.groupe}>
+                            {g.series.map((se) => (
+                              <option key={se.code} value={se.code}>
+                                {se.code} — {se.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+
+                      {ctrl && (
+                        <div className={`sia-controle ${ctrl.niveau}`}>
+                          <span className="sia-ctrlpicto" aria-hidden="true">
+                            {ctrl.niveau === "ok" ? "✓" : ctrl.niveau === "info" ? "?" : "!"}
+                          </span>
+                          <span>{ctrl.message}</span>
+                        </div>
+                      )}
+
+                      {n.serie && !n.cote && (
+                        <div className="sia-cotation">
+                          <label htmlFor={`co-${n.id}`}>
+                            Cote calculée pour la série {n.serie} — modifiable
+                          </label>
+                          <div className="sia-searchrow">
+                            <input
+                              id={`co-${n.id}`}
+                              className="sia-input"
+                              value={coCible === n.id ? coSaisie : coteAuto(n.serie, notices)}
+                              placeholder={`Ex. 2 ${n.serie} 45`}
+                              autoComplete="off"
+                              onFocus={() => {
+                                if (coCible !== n.id) {
+                                  setCoCible(n.id);
+                                  setCoSaisie(coteAuto(n.serie, notices));
+                                }
+                                setCoErreur("");
+                              }}
+                              onChange={(e) => {
+                                setCoCible(n.id);
+                                setCoSaisie(e.target.value);
+                              }}
+                              onKeyDown={(e) =>
+                                e.key === "Enter" &&
+                                coterNotice(
+                                  n.id,
+                                  coCible === n.id ? coSaisie : coteAuto(n.serie, notices)
+                                )
+                              }
+                            />
+                            <button
+                              className="sia-btn"
+                              onClick={() =>
+                                coterNotice(
+                                  n.id,
+                                  coCible === n.id ? coSaisie : coteAuto(n.serie, notices)
+                                )
+                              }
+                            >
+                              Coter
+                            </button>
+                          </div>
+                          {coCible === n.id && coErreur && (
+                            <div className="sia-erreur" style={{ marginTop: ".5rem" }}>
+                              {coErreur}
+                            </div>
+                          )}
+                          <div className="sia-aide">
+                            Le numéro suit la dernière cote attribuée dans cette série. Vous pouvez
+                            le corriger, mais la lettre doit rester celle de la série retenue.
+                          </div>
+                        </div>
+                      )}
+
+                      {n.cote && !n.loc && (
+                        <button
+                          className="sia-link sia-mini"
+                          style={{ marginTop: ".5rem" }}
+                          onClick={() => {
+                            allerA("conservation");
+                            setPlacement(n.id);
+                            if (typeof window !== "undefined")
+                              window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                        >
+                          Étape 3 · Placer en magasin
+                        </button>
+                      )}
+                      {n.cote && n.loc && (
+                        <button
+                          className="sia-link sia-mini"
+                          style={{ marginTop: ".5rem" }}
+                          onClick={() => openCote(n.cote)}
+                        >
+                          Étape 4 · Communiquer
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {notices.some((n) => n.serie) && (
+                  <div className="sia-plan">
+                    <div className="sia-planhead">
+                      <div className="sia-eyebrow" style={{ textAlign: "left", margin: 0 }}>
+                        Plan de classement
+                      </div>
+                      <button className="sia-link sia-mini" onClick={editerInstrument}>
+                        Éditer l'instrument de recherche
+                      </button>
+                    </div>
+                    {CADRE.map((g) => {
+                      const dansGroupe = g.series.filter((se) =>
+                        notices.some((n) => n.serie === se.code)
+                      );
+                      if (dansGroupe.length === 0) return null;
+                      return dansGroupe.map((se) => (
+                        <div className="sia-plangroupe" key={se.code}>
+                          <div className="sia-plantitre">
+                            Série {se.code} — {se.label}
+                          </div>
+                          <div className="sia-plansous">{g.groupe}</div>
+                          {notices
+                            .filter((n) => n.serie === se.code)
+                            .map((n) => (
+                              <div className="sia-planart" key={n.id}>
+                                <b>{n.cote || "sans cote"}</b> — {n.intitule} ({n.dates})
+                              </div>
+                            ))}
+                        </div>
+                      ));
+                    })}
+                  </div>
+                )}
+
+                {notices.some((n) => !n.serie) && (
+                  <div className="sia-plan">
+                    <div className="sia-eyebrow" style={{ textAlign: "left" }}>
+                      En attente de classement ({notices.filter((n) => !n.serie).length})
+                    </div>
+                    {notices
+                      .filter((n) => !n.serie)
+                      .map((n) => (
+                        <div className="sia-planart" key={n.id}>
+                          <b>{n.cote || "sans cote"}</b> — {n.intitule}
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {tab === "classement" && repertoireOuvert && (
+          <Repertoire
+            rep={REPERTOIRE_HBL}
+            onBack={() => setRepertoireOuvert(false)}
+            onOpenCote={openCote}
+          />
+        )}
+
+        {tab === "classement" && !repertoireOuvert && (
+          <>
+            <div className="sia-plan">
+              <div className="sia-eyebrow" style={{ textAlign: "left" }}>
+                Instruments de recherche
+              </div>
+              <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", margin: "0 0 1rem", lineHeight: 1.5 }}>
+                Répertoires et bordereaux décrivant les fonds déjà classés. Chaque instrument
+                renvoie vers une cote qu'il couvre, avec sa localisation en magasin.
+              </p>
+            </div>
+            <input
+              className="sia-filter"
+              value={irFilter}
+              placeholder="Filtrer par titre, série ou cote…"
+              onChange={(e) => setIrFilter(e.target.value)}
+            />
+
+            {serieFiltree && (
+              <div className="sia-serieinfo">
+                <div className="sia-serietitre">
+                  <span className="sia-seriecode">{serieFiltree.serie.code}</span>
+                  {serieFiltree.serie.label}
+                </div>
+                <div className="sia-seriegroupe">{serieFiltree.groupe}</div>
+                <div className="sia-serieperiode">
+                  {(() => {
+                    const d =
+                      serieFiltree.serie.debut != null
+                        ? serieFiltree.serie.debut
+                        : serieFiltree.debut;
+                    const f =
+                      serieFiltree.serie.fin != null ? serieFiltree.serie.fin : serieFiltree.fin;
+                    if (d == null && f == null) return "Sans borne chronologique.";
+                    if (d == null) return `Documents antérieurs à ${f}.`;
+                    if (f == null) return `Documents postérieurs à ${d}.`;
+                    return `Documents de ${d} à ${f}.`;
+                  })()}
+                </div>
+              </div>
+            )}
+
+            <div className="sia-list">
+              {filteredIR.length === 0 ? (
+                <div className="sia-noresult">Aucun instrument ne correspond à ce filtre.</div>
+              ) : (
+                filteredIR.map((ir) => (
+                  <ResultCard
+                    key={ir.coteEx}
+                    badge={ir.type}
+                    titre={ir.titre}
+                    meta={[
+                      ["Niveau", ir.niveau],
+                      ["Dates", ir.dates],
+                      ["Cotes extrêmes", ir.cotesExtremes],
+                      ["Format", ir.format],
+                      ["Rédacteur", ir.redacteur],
+                    ]}
+                    coteEx={ir.coteEx}
+                    onOpen={openCote}
+                    onOpenRepertoire={
+                      ir.coteEx === REPERTOIRE_HBL.coteEx
+                        ? () => setRepertoireOuvert(true)
+                        : undefined
+                    }
+                  />
+                ))
+              )}
+            </div>
+          </>
+        )}
+
+
+        {tab === "conservation" && (
+          <>
+            <div className="sia-intro">
+              <div className="sia-eyebrow">Module de conservation</div>
+              <h1>Placer en magasin</h1>
+              <p>
+                Chaque article décrit doit recevoir un emplacement physique. La place est une
+                ressource limitée : un emplacement occupé ne peut pas servir deux fois.
+              </p>
+            </div>
+
+            {notices.length === 0 ? (
+              <div className="sia-vide">
+                Aucun article à conserver. Commencez par en collecter dans l'onglet Collecter.
+              </div>
+            ) : (
+              <>
+                {notices.map((n) => (
+                  <div
+                    className={`sia-classligne${n.loc ? " classe" : ""}`}
+                    key={n.id}
+                  >
+                    <div className="sia-classhead">
+                      <span className="sia-classcote">
+                        {n.cote || <span className="sia-sanscote">sans cote</span>}
+                      </span>
+                      <span className="sia-classdates">
+                        {n.mesure} {n.support === "numerique" ? "Go" : "ml"}
+                      </span>
+                    </div>
+                    <div className="sia-classint">{n.intitule}</div>
+
+                    {!n.cote && (
+                      <div className="sia-controle info">
+                        <span className="sia-ctrlpicto" aria-hidden="true">?</span>
+                        <span>
+                          Cet article n'a pas encore de cote : on ne peut pas lui donner d'adresse
+                          en magasin tant qu'il n'a pas d'identité.{" "}
+                          <button className="sia-inline" onClick={() => allerA("classement")}>
+                            Revenir à l'étape 2 · Classer et coter
+                          </button>
+                        </span>
+                      </div>
+                    )}
+
+                    {n.support === "numerique" && (
+                      <div className="sia-controle info">
+                        <span className="sia-ctrlpicto" aria-hidden="true">?</span>
+                        <span>
+                          Archives numériques : la conservation ne passe pas par le rayonnage mais
+                          par un stockage sécurisé et des migrations de format.
+                        </span>
+                      </div>
+                    )}
+
+                    {n.loc ? (
+                      <div className="sia-emplacement">
+                        <span>
+                          {n.loc.site} · magasin <b>{n.loc.magasin}</b> · épi <b>{n.loc.epi}</b> ·
+                          travée <b>{n.loc.travee}</b> · tablette <b>{n.loc.tablette}</b>
+                        </span>
+                        <button className="sia-link sia-mini" onClick={() => retirerNotice(n.id)}>
+                          Retirer du rayonnage
+                        </button>
+                      </div>
+                    ) : placement === n.id ? (
+                      <div className="sia-placement">
+                        {cErreur && <div className="sia-erreur">{cErreur}</div>}
+                        <div className="sia-champ">
+                          <label htmlFor="c-site">Site</label>
+                          <select
+                            id="c-site"
+                            className="sia-select"
+                            value={cSite}
+                            onChange={(e) => setCSite(e.target.value)}
+                          >
+                            <option value="Saint-Julien-lès-Metz">Saint-Julien-lès-Metz</option>
+                            <option value="CAITM — Saint-Avold">CAITM — Saint-Avold</option>
+                          </select>
+                        </div>
+                        <div className="sia-loc4">
+                          <div className="sia-champ">
+                            <label htmlFor="c-mag">Magasin</label>
+                            <select
+                              id="c-mag"
+                              className="sia-select"
+                              value={cMagasin}
+                              onChange={(e) => setCMagasin(e.target.value)}
+                            >
+                              <option value="A">A</option>
+                              <option value="B">B</option>
+                            </select>
+                          </div>
+                          <div className="sia-champ">
+                            <label htmlFor="c-epi">Épi</label>
+                            <input
+                              id="c-epi"
+                              className="mono"
+                              inputMode="numeric"
+                              value={cEpi}
+                              placeholder={cMagasin === "A" ? "1–158" : "1–100"}
+                              onChange={(e) => setCEpi(e.target.value)}
+                            />
+                          </div>
+                          <div className="sia-champ">
+                            <label htmlFor="c-tra">Travée</label>
+                            <input
+                              id="c-tra"
+                              className="mono"
+                              inputMode="numeric"
+                              value={cTravee}
+                              placeholder="1–10"
+                              onChange={(e) => setCTravee(e.target.value)}
+                            />
+                          </div>
+                          <div className="sia-champ">
+                            <label htmlFor="c-tab">Tablette</label>
+                            <input
+                              id="c-tab"
+                              className="mono"
+                              inputMode="numeric"
+                              value={cTablette}
+                              placeholder="1–6"
+                              onChange={(e) => setCTablette(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && placerNotice(n.id)}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+                          <button className="sia-link" onClick={() => placerNotice(n.id)}>
+                            Placer l'article
+                          </button>
+                          <button
+                            className="sia-link"
+                            onClick={() => {
+                              setPlacement(null);
+                              setCErreur("");
+                            }}
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        className="sia-link sia-mini"
+                        style={{ marginTop: ".5rem" }}
+                        onClick={() => {
+                          setPlacement(n.id);
+                          setCErreur("");
+                        }}
+                        disabled={!n.cote}
+                      >
+                        Choisir un emplacement
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
+          </>
+        )}
+
+        <div className="sia-foot">
+          Jeu de données fictif conçu pour un atelier de valorisation des fonds d'archives.
+        </div>
+      </main>
+    </div>
+  );
+}
