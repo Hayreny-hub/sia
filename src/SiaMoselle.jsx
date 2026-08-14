@@ -2077,7 +2077,7 @@ export default function SiaMoselle() {
   const [fErreur, setFErreur] = useState("");
   const [fValide, setFValide] = useState("");
   const [fProducteur, setFProducteur] = useState("");
-  const [fArticles, setFArticles] = useState([ligneVide(), ligneVide()]);
+  const [fArticles, setFArticles] = useState([ligneVide()]);
   const [mots, setMots] = useState("");
   const [coCible, setCoCible] = useState(null);
   const [coSaisie, setCoSaisie] = useState("");
@@ -2159,8 +2159,8 @@ export default function SiaMoselle() {
       .map((a, i) => ({ ...a, rang: i + 1 }))
       .filter((a) => a.intitule.trim() || a.dates.trim() || String(a.mesure).trim());
 
-    if (remplies.length < 2) {
-      setFErreur("Un versement comporte au moins deux articles : complétez les deux lignes.");
+    if (remplies.length < 1) {
+      setFErreur("Décrivez au moins un article.");
       return;
     }
 
@@ -2218,12 +2218,13 @@ export default function SiaMoselle() {
     setNotices(liste);
     sauverNotices(liste);
     setFErreur("");
+    const pl = ajouts.length > 1;
     setFValide(
-      `Versement enregistré : ${ajouts.length} articles décrits pour ${producteur}. ` +
-        "Étape suivante : les classer, ce qui leur donnera leur cote."
+      `Versement enregistré : ${ajouts.length} article${pl ? "s" : ""} décrit${pl ? "s" : ""} pour ${producteur}. ` +
+        `Étape suivante : ${pl ? "les classer, ce qui leur donnera leur cote" : "le classer, ce qui lui donnera sa cote"}.`
     );
     setFProducteur("");
-    setFArticles([ligneVide(), ligneVide()]);
+    setFArticles([ligneVide()]);
   };
 
   /* La cote est attribuée au classement : elle doit annoncer la série retenue. */
@@ -2837,8 +2838,9 @@ export default function SiaMoselle() {
               <div className="sia-eyebrow">Module de collecte</div>
               <h1>Collecter un versement</h1>
               <p>
-                Un versement entre d'un bloc : un producteur, plusieurs articles. Décrivez-les
-                tous ici — leur cote leur sera donnée au classement, leur emplacement à la
+                Un versement entre d'un bloc : un producteur, un ou plusieurs articles. Décrivez
+                le premier article ci-dessous, et ajoutez-en d'autres si le versement en comporte
+                plusieurs — leur cote leur sera donnée au classement, leur emplacement à la
                 conservation.
               </p>
             </div>
@@ -2870,7 +2872,7 @@ export default function SiaMoselle() {
                 <div className="sia-article" key={i}>
                   <div className="sia-articlehead">
                     <span className="sia-articlenum">Article {i + 1}</span>
-                    {fArticles.length > 2 && (
+                    {fArticles.length > 1 && (
                       <button
                         className="sia-inline"
                         onClick={() => retirerLigne(i)}
