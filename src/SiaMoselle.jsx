@@ -713,6 +713,7 @@ const CSS = `
 .sia-motstitre{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.1em;
   text-transform:uppercase;color:var(--ink-soft);margin:1.2rem 0 .4rem;
   padding-top:1rem;border-top:1px dashed var(--line);}
+.sia-motstitre.sia-premier{margin-top:0;padding-top:0;border-top:none;}
 .sia-resultats{margin-top:.9rem;display:flex;flex-direction:column;gap:.4rem;}
 .sia-resultat{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;
   text-align:left;width:100%;background:var(--paper-dark);border:1px solid var(--line);
@@ -888,6 +889,13 @@ const CSS = `
   background:var(--red);color:#fff;padding:.15rem .45rem;border-radius:2px;}
 .sia-seriegroupe{font-size:.78rem;color:#b6ae9a;margin-top:.3rem;}
 .sia-serieperiode{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#dcd3bd;margin-top:.35rem;}
+.sia-sae{margin-top:.6rem;padding:.7rem .8rem;background:#e8eef3;border:1px solid #a8bccd;
+  border-left:3px solid #3f6b8a;border-radius:2px;}
+.sia-saetitre{font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.1em;
+  text-transform:uppercase;color:#2f5670;margin-bottom:.4rem;}
+.sia-saeid{font-family:'IBM Plex Mono',monospace;font-size:.72rem;word-break:break-all;
+  background:rgba(63,107,138,.12);padding:.4rem .5rem;border-radius:2px;color:#22475e;}
+.sia-saenote{font-size:.75rem;color:#4a6274;margin-top:.4rem;line-height:1.45;}
 .sia-emplacement{display:flex;justify-content:space-between;align-items:center;gap:.6rem;
   flex-wrap:wrap;margin-top:.6rem;padding:.55rem .7rem;background:#e4ecdf;border:1px solid #a8c2a3;
   border-radius:2px;font-size:.8rem;color:#3c5a3e;}
@@ -897,6 +905,15 @@ const CSS = `
   flex-wrap:wrap;margin-bottom:.5rem;}
 .sia-ctrlpicto{font-family:'IBM Plex Mono',monospace;font-weight:600;flex:0 0 auto;}
 .sia-classhead{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
+.sia-versementtitre{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-soft);margin:1.3rem 0 .6rem;
+  padding-top:.9rem;border-top:1px dashed var(--line);}
+.sia-article{background:var(--paper-dark);border:1px solid var(--line);border-left:3px solid var(--kraft);
+  border-radius:2px;padding:.9rem 1rem .4rem;margin-bottom:.8rem;}
+.sia-articlehead{display:flex;justify-content:space-between;align-items:baseline;
+  gap:.6rem;margin-bottom:.6rem;}
+.sia-articlenum{font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.1em;
+  text-transform:uppercase;color:#fff;background:var(--green);padding:.15rem .45rem;border-radius:2px;}
 .sia-sanscote{font-family:'IBM Plex Sans',sans-serif;font-weight:400;font-size:.78rem;
   font-style:italic;color:#9a9280;}
 .sia-cotation{margin-top:.7rem;padding-top:.7rem;border-top:1px dashed var(--line);}
@@ -1584,6 +1601,21 @@ function serieDeCote(cote) {
   return null;
 }
 
+/* Les archives numériques n'occupent pas de tablette : elles sont
+   versées dans le SAE, qui leur attribue un identifiant d'archivage
+   au moment de l'entrée. FRAD057 est le code du service. */
+function identifiantSAE(annee, numVersement) {
+  const v = String(numVersement).padStart(4, "0");
+  const alea = String(Math.floor(Math.random() * 900000) + 100000);
+  return `SAE_DEFINITIF_FRAD057_${annee}_${v}_${alea}`;
+}
+
+/* Un versement se compose de plusieurs articles : chaque ligne du
+   formulaire de collecte décrit un article de l'ensemble. */
+function ligneVide() {
+  return { intitule: "", dates: "", support: "physique", mesure: "", comm: "libre", motif: "" };
+}
+
 /* Certaines séries se cotent numéro puis code (472 HBL, 152 ETP,
    2654 CAITM) ; les autres suivent le schéma sous-série, lettre,
    article (2 O 45). Le numéro suit la dernière cote attribuée. */
@@ -1869,6 +1901,21 @@ function Fiche({ cote, data }) {
             Décrit et classé, mais sans emplacement : il ne peut pas être communiqué.
           </div>
         </div>
+      ) : data.loc.sae ? (
+        <div className="sia-loc">
+          <div className="sia-stamp">ARCHIVÉ<br />SAE</div>
+          <div className="sia-loctitle">Archivage électronique</div>
+          <div className="sia-locpath" style={{ marginBottom: ".5rem" }}>
+            {data.loc.site}
+          </div>
+          <div className="sia-saeid" style={{ background: "rgba(0,0,0,.25)", color: "#e9e4d4" }}>
+            {data.loc.identifiant}
+          </div>
+          <div className="sia-baylabel" style={{ marginTop: ".6rem" }}>
+            Aucun emplacement physique : le document est conservé dans le système d'archivage
+            électronique, sous cet identifiant.
+          </div>
+        </div>
       ) : (
       <div className={`sia-loc${impact ? " impact" : ""}`}>
         <div className="sia-stamp">LOCALISÉ<br />SIA</div>
@@ -2027,13 +2074,10 @@ export default function SiaMoselle() {
   const [prodFilter, setProdFilter] = useState("");
   const [notices, setNotices] = useState([]);
   const noticesRef = useRef([]);
-  const [fIntitule, setFIntitule] = useState("");
-  const [fDates, setFDates] = useState("");
   const [fErreur, setFErreur] = useState("");
   const [fValide, setFValide] = useState("");
   const [fProducteur, setFProducteur] = useState("");
-  const [fComm, setFComm] = useState("libre");
-  const [fMotif, setFMotif] = useState("");
+  const [fArticles, setFArticles] = useState([ligneVide(), ligneVide()]);
   const [mots, setMots] = useState("");
   const [coCible, setCoCible] = useState(null);
   const [coSaisie, setCoSaisie] = useState("");
@@ -2045,8 +2089,6 @@ export default function SiaMoselle() {
   const [cTravee, setCTravee] = useState("");
   const [cTablette, setCTablette] = useState("");
   const [cErreur, setCErreur] = useState("");
-  const [fSupport, setFSupport] = useState("physique");
-  const [fMesure, setFMesure] = useState("");
   const scanTimer = useRef(null);
   const reduced =
     typeof window !== "undefined" &&
@@ -2092,60 +2134,96 @@ export default function SiaMoselle() {
     };
   }, []);
 
-  const enregistrerNotice = () => {
-    const intitule = fIntitule.trim();
-    const dates = fDates.trim();
+  const majArticle = (i, champ, valeur) => {
+    setFArticles((prev) =>
+      prev.map((a, k) => (k === i ? { ...a, [champ]: valeur } : a))
+    );
+  };
+
+  const ajouterLigne = () => setFArticles((prev) => [...prev, ligneVide()]);
+
+  const retirerLigne = (i) =>
+    setFArticles((prev) => (prev.length <= 1 ? prev : prev.filter((a, k) => k !== i)));
+
+  /* Un versement entre d'un bloc : un producteur, plusieurs articles. */
+  const enregistrerVersement = () => {
     const producteur = fProducteur.trim();
     setFValide("");
 
-    if (!intitule || !dates || !producteur) {
-      setFErreur("Renseignez l'intitulé, les dates extrêmes et le producteur.");
-      return;
-    }
-    if (fComm !== "libre" && !fMotif.trim()) {
-      setFErreur("Indiquez le motif du délai de communicabilité.");
-      return;
-    }
-    const mesure = parseFloat(String(fMesure).replace(",", "."));
-    if (!fMesure || isNaN(mesure) || mesure <= 0) {
-      setFErreur(
-        fSupport === "physique"
-          ? "Indiquez le métrage linéaire, en mètres."
-          : "Indiquez le volume des données, en Go."
-      );
+    if (!producteur) {
+      setFErreur("Indiquez le producteur du versement.");
       return;
     }
 
-    const id = `a${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
-    const liste = [
-      ...notices,
-      {
-        id,
-        cote: null,
-        intitule,
-        dates,
-        producteur,
-        comm: fComm,
-        motif: fComm === "libre" ? "" : fMotif.trim(),
-        support: fSupport,
-        mesure,
-        serie: "",
-        loc: null,
-      },
-    ];
+    const remplies = fArticles
+      .map((a, i) => ({ ...a, rang: i + 1 }))
+      .filter((a) => a.intitule.trim() || a.dates.trim() || String(a.mesure).trim());
+
+    if (remplies.length < 2) {
+      setFErreur("Un versement comporte au moins deux articles : complétez les deux lignes.");
+      return;
+    }
+
+    const prets = [];
+    for (const a of remplies) {
+      if (!a.intitule.trim() || !a.dates.trim()) {
+        setFErreur(`Article ${a.rang} : renseignez l'intitulé et les dates extrêmes.`);
+        return;
+      }
+      if (a.comm !== "libre" && !a.motif.trim()) {
+        setFErreur(`Article ${a.rang} : indiquez le motif du délai de communicabilité.`);
+        return;
+      }
+      const mesure = parseFloat(String(a.mesure).replace(",", "."));
+      if (!String(a.mesure).trim() || isNaN(mesure) || mesure <= 0) {
+        setFErreur(
+          a.support === "physique"
+            ? `Article ${a.rang} : indiquez le métrage linéaire, en mètres.`
+            : `Article ${a.rang} : indiquez le volume des données, en Go.`
+        );
+        return;
+      }
+      prets.push({ ...a, mesure });
+    }
+
+    const versement = `v${Date.now().toString(36)}`;
+    const annee = new Date().getFullYear();
+    const numVersement =
+      new Set(notices.filter((n) => n.versement).map((n) => n.versement)).size + 1;
+
+    const ajouts = prets.map((a, i) => ({
+      id: `${versement}-${i}`,
+      versement,
+      cote: null,
+      intitule: a.intitule.trim(),
+      dates: a.dates.trim(),
+      producteur,
+      comm: a.comm,
+      motif: a.comm === "libre" ? "" : a.motif.trim(),
+      support: a.support,
+      mesure: a.mesure,
+      serie: "",
+      loc:
+        a.support === "numerique"
+          ? {
+              sae: true,
+              site: "SAE de la Moselle",
+              identifiant: identifiantSAE(annee, numVersement),
+            }
+          : null,
+    }));
+
+    const liste = [...notices, ...ajouts];
     noticesRef.current = liste;
     setNotices(liste);
     sauverNotices(liste);
     setFErreur("");
     setFValide(
-      "Article décrit. Étape suivante : le classer dans une série, ce qui lui donnera sa cote."
+      `Versement enregistré : ${ajouts.length} articles décrits pour ${producteur}. ` +
+        "Étape suivante : les classer, ce qui leur donnera leur cote."
     );
-    setFIntitule("");
-    setFDates("");
     setFProducteur("");
-    setFComm("libre");
-    setFMotif("");
-    setFMesure("");
+    setFArticles([ligneVide(), ligneVide()]);
   };
 
   /* La cote est attribuée au classement : elle doit annoncer la série retenue. */
@@ -2231,7 +2309,7 @@ export default function SiaMoselle() {
 
     const occupe = [
       ...Object.entries(FONDS).map(([c, d]) => ({ cote: c, loc: d.loc })),
-      ...notices.filter((n) => n.loc && n.id !== id),
+      ...notices.filter((n) => n.loc && !n.loc.sae && n.id !== id),
     ].find(
       (a) =>
         a.loc.site === cSite &&
@@ -2302,8 +2380,10 @@ export default function SiaMoselle() {
           );
           lignes.push(
             n.loc
-              ? `   ${n.loc.site} · magasin ${n.loc.magasin} · epi ${n.loc.epi} · ` +
-                `travee ${n.loc.travee} · tablette ${n.loc.tablette}`
+              ? n.loc.sae
+                ? `   ${n.loc.site} · ${n.loc.identifiant}`
+                : `   ${n.loc.site} · magasin ${n.loc.magasin} · epi ${n.loc.epi} · ` +
+                  `travee ${n.loc.travee} · tablette ${n.loc.tablette}`
               : "   emplacement non attribue"
           );
           lignes.push("");
@@ -2551,6 +2631,7 @@ export default function SiaMoselle() {
             </div>
 
             <div className="sia-panel">
+              <div className="sia-motstitre sia-premier">Recherche par cote</div>
               <div className="sia-searchrow">
                 <label htmlFor="cote" className="sr-only" style={{ display: "none" }}>Cote</label>
                 <input
@@ -2568,7 +2649,7 @@ export default function SiaMoselle() {
               </div>
               <div className="sia-hint">Appuyez sur Entrée ou cliquez sur Rechercher.</div>
 
-              <div className="sia-motstitre">Ou cherchez sans connaître la cote</div>
+              <div className="sia-motstitre">Recherche par mot-clé</div>
               <input
                 className="sia-filter"
                 style={{ marginBottom: ".4rem" }}
@@ -2754,11 +2835,11 @@ export default function SiaMoselle() {
           <>
             <div className="sia-intro">
               <div className="sia-eyebrow">Module de collecte</div>
-              <h1>Collecter un article</h1>
+              <h1>Collecter un versement</h1>
               <p>
-                Décrivez l'article qui entre dans le service : intitulé, dates extrêmes,
-                producteur, communicabilité et importance matérielle. Sa cote lui sera donnée
-                au classement, son emplacement à la conservation.
+                Un versement entre d'un bloc : un producteur, plusieurs articles. Décrivez-les
+                tous ici — leur cote leur sera donnée au classement, leur emplacement à la
+                conservation.
               </p>
             </div>
 
@@ -2767,33 +2848,7 @@ export default function SiaMoselle() {
               {fValide && <div className="sia-valide">{fValide}</div>}
 
               <div className="sia-champ">
-                <label htmlFor="f-int">Intitulé</label>
-                <input
-                  id="f-int"
-                  value={fIntitule}
-                  placeholder="Ex. Registre de délibérations du conseil municipal"
-                  autoComplete="off"
-                  onChange={(e) => setFIntitule(e.target.value)}
-                />
-                <div className="sia-aide">Ce que contient l'article, en une phrase.</div>
-              </div>
-
-              <div className="sia-champ">
-                <label htmlFor="f-dates">Dates extrêmes</label>
-                <input
-                  id="f-dates"
-                  className="mono"
-                  value={fDates}
-                  placeholder="Ex. 1872–1904"
-                  autoComplete="off"
-                  onChange={(e) => setFDates(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && enregistrerNotice()}
-                />
-                <div className="sia-aide">Du document le plus ancien au plus récent.</div>
-              </div>
-
-              <div className="sia-champ">
-                <label htmlFor="f-prod">Producteur</label>
+                <label htmlFor="f-prod">Producteur du versement</label>
                 <input
                   id="f-prod"
                   value={fProducteur}
@@ -2802,83 +2857,133 @@ export default function SiaMoselle() {
                   onChange={(e) => setFProducteur(e.target.value)}
                 />
                 <div className="sia-aide">
-                  Qui a produit ou reçu ces documents dans son activité. C'est l'origine qui
-                  détermine le classement, pas le sujet.
+                  Qui a produit ou reçu ces documents dans son activité. Tous les articles du
+                  versement partagent le même producteur : c'est ce qui en fait un ensemble.
                 </div>
               </div>
 
-              <div className="sia-champ">
-                <label htmlFor="f-comm">Communicabilité</label>
-                <select
-                  id="f-comm"
-                  className="sia-select"
-                  value={fComm}
-                  onChange={(e) => setFComm(e.target.value)}
+              <div className="sia-versementtitre">
+                Articles du versement ({fArticles.length})
+              </div>
+
+              {fArticles.map((a, i) => (
+                <div className="sia-article" key={i}>
+                  <div className="sia-articlehead">
+                    <span className="sia-articlenum">Article {i + 1}</span>
+                    {fArticles.length > 2 && (
+                      <button
+                        className="sia-inline"
+                        onClick={() => retirerLigne(i)}
+                        aria-label={`Retirer l'article ${i + 1}`}
+                      >
+                        Retirer
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="sia-champ">
+                    <label htmlFor={`a-int-${i}`}>Intitulé</label>
+                    <input
+                      id={`a-int-${i}`}
+                      value={a.intitule}
+                      placeholder="Ex. Registre de délibérations du conseil municipal"
+                      autoComplete="off"
+                      onChange={(e) => majArticle(i, "intitule", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="sia-loc2">
+                    <div className="sia-champ">
+                      <label htmlFor={`a-dat-${i}`}>Dates extrêmes</label>
+                      <input
+                        id={`a-dat-${i}`}
+                        className="mono"
+                        value={a.dates}
+                        placeholder="Ex. 1872–1904"
+                        autoComplete="off"
+                        onChange={(e) => majArticle(i, "dates", e.target.value)}
+                      />
+                    </div>
+                    <div className="sia-champ">
+                      <label htmlFor={`a-comm-${i}`}>Communicabilité</label>
+                      <select
+                        id={`a-comm-${i}`}
+                        className="sia-select"
+                        value={a.comm}
+                        onChange={(e) => majArticle(i, "comm", e.target.value)}
+                      >
+                        <option value="libre">Communicable</option>
+                        <option value="differee">Non communicable</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {a.comm !== "libre" && (
+                    <div className="sia-champ">
+                      <label htmlFor={`a-mot-${i}`}>Motif du délai</label>
+                      <input
+                        id={`a-mot-${i}`}
+                        value={a.motif}
+                        placeholder="Ex. Non communicable — 50 ans (vie privée)"
+                        autoComplete="off"
+                        onChange={(e) => majArticle(i, "motif", e.target.value)}
+                      />
+                      <div className="sia-aide">
+                        25 ans secret industriel · 50 ans vie privée · 75 ans état civil et
+                        justice · 120 ans dossiers médicaux.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="sia-loc2">
+                    <div className="sia-champ">
+                      <label htmlFor={`a-sup-${i}`}>Support</label>
+                      <select
+                        id={`a-sup-${i}`}
+                        className="sia-select"
+                        value={a.support}
+                        onChange={(e) => majArticle(i, "support", e.target.value)}
+                      >
+                        <option value="physique">Archives physiques</option>
+                        <option value="numerique">Archives numériques</option>
+                      </select>
+                      {a.support === "numerique" && (
+                        <div className="sia-aide">
+                          Versé au SAE : un identifiant d'archivage lui sera attribué, sans
+                          emplacement en magasin.
+                        </div>
+                      )}
+                    </div>
+                    <div className="sia-champ">
+                      <label htmlFor={`a-mes-${i}`}>
+                        {a.support === "physique" ? "Métrage linéaire (ml)" : "Volume (Go)"}
+                      </label>
+                      <input
+                        id={`a-mes-${i}`}
+                        className="mono"
+                        inputMode="decimal"
+                        value={a.mesure}
+                        placeholder={a.support === "physique" ? "Ex. 0,80" : "Ex. 12,5"}
+                        autoComplete="off"
+                        onChange={(e) => majArticle(i, "mesure", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+                <button className="sia-link" onClick={ajouterLigne}>
+                  + Ajouter un article
+                </button>
+                <button
+                  className="sia-btn"
+                  style={{ padding: ".65rem 1.2rem" }}
+                  onClick={enregistrerVersement}
                 >
-                  <option value="libre">Communicable</option>
-                  <option value="differee">Non communicable</option>
-                </select>
-                <div className="sia-aide">
-                  Vie privée, secret médical, dossiers de personnel : le document reste décrit,
-                  mais n'est pas présenté en salle de lecture.
-                </div>
+                  Enregistrer le versement
+                </button>
               </div>
-
-              {fComm !== "libre" && (
-                <div className="sia-champ">
-                  <label htmlFor="f-motif">Motif du délai</label>
-                  <input
-                    id="f-motif"
-                    value={fMotif}
-                    placeholder="Ex. Non communicable — 50 ans (vie privée)"
-                    autoComplete="off"
-                    onChange={(e) => setFMotif(e.target.value)}
-                  />
-                  <div className="sia-aide">
-                    25 ans secret industriel · 50 ans vie privée · 75 ans état civil et justice ·
-                    120 ans dossiers médicaux.
-                  </div>
-                </div>
-              )}
-
-              <div className="sia-loc2">
-                <div className="sia-champ">
-                  <label htmlFor="f-support">Support</label>
-                  <select
-                    id="f-support"
-                    className="sia-select"
-                    value={fSupport}
-                    onChange={(e) => setFSupport(e.target.value)}
-                  >
-                    <option value="physique">Archives physiques</option>
-                    <option value="numerique">Archives numériques</option>
-                  </select>
-                </div>
-
-                <div className="sia-champ">
-                  <label htmlFor="f-mesure">
-                    {fSupport === "physique" ? "Métrage linéaire (ml)" : "Volume (Go)"}
-                  </label>
-                  <input
-                    id="f-mesure"
-                    className="mono"
-                    inputMode="decimal"
-                    value={fMesure}
-                    placeholder={fSupport === "physique" ? "Ex. 0,80" : "Ex. 12,5"}
-                    autoComplete="off"
-                    onChange={(e) => setFMesure(e.target.value)}
-                  />
-                  <div className="sia-aide">
-                    {fSupport === "physique"
-                      ? "Longueur occupée sur la tablette, en mètres."
-                      : "Volume des fichiers, en gigaoctets."}
-                  </div>
-                </div>
-              </div>
-
-              <button className="sia-btn" style={{ padding: ".65rem 1.2rem" }} onClick={enregistrerNotice}>
-                Enregistrer la notice
-              </button>
             </div>
 
             {notices.length > 0 && (
@@ -2898,7 +3003,9 @@ export default function SiaMoselle() {
                       </div>
                       <div className="sia-noticeloc">
                         {n.loc
-                          ? `Magasin ${n.loc.magasin} · épi ${n.loc.epi} · travée ${n.loc.travee} · tablette ${n.loc.tablette}`
+                          ? n.loc.sae
+                            ? `SAE · ${n.loc.identifiant}`
+                            : `Magasin ${n.loc.magasin} · épi ${n.loc.epi} · travée ${n.loc.travee} · tablette ${n.loc.tablette}`
                           : n.serie
                           ? "Classé, en attente de cote ou d'emplacement"
                           : "En attente de classement"}
@@ -2917,7 +3024,7 @@ export default function SiaMoselle() {
                           className="sia-link sia-mini"
                           onClick={() => {
                             allerA("conservation");
-                            setPlacement(n.id);
+                            setPlacement(n.support === "numerique" ? null : n.id);
                             if (typeof window !== "undefined")
                               window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
@@ -3266,16 +3373,17 @@ export default function SiaMoselle() {
                     )}
 
                     {n.support === "numerique" && (
-                      <div className="sia-controle info">
-                        <span className="sia-ctrlpicto" aria-hidden="true">?</span>
-                        <span>
-                          Archives numériques : la conservation ne passe pas par le rayonnage mais
-                          par un stockage sécurisé et des migrations de format.
-                        </span>
+                      <div className="sia-sae">
+                        <div className="sia-saetitre">Déposé au SAE de la Moselle</div>
+                        <div className="sia-saeid">{n.loc && n.loc.identifiant}</div>
+                        <div className="sia-saenote">
+                          Pas de tablette : la conservation repose sur un stockage sécurisé,
+                          des empreintes d'intégrité et des migrations de format.
+                        </div>
                       </div>
                     )}
 
-                    {n.loc ? (
+                    {n.loc && !n.loc.sae ? (
                       <div className="sia-emplacement">
                         <span>
                           {n.loc.site} · magasin <b>{n.loc.magasin}</b> · épi <b>{n.loc.epi}</b> ·
@@ -3285,7 +3393,7 @@ export default function SiaMoselle() {
                           Retirer du rayonnage
                         </button>
                       </div>
-                    ) : placement === n.id ? (
+                    ) : n.support === "numerique" ? null : placement === n.id ? (
                       <div className="sia-placement">
                         {cErreur && <div className="sia-erreur">{cErreur}</div>}
                         <div className="sia-champ">
