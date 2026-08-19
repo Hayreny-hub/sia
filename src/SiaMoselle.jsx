@@ -2086,22 +2086,10 @@ const MOTIFS_ELIMINATION = [
   { code: "vrac", label: "Document de gestion courante sans intérêt historique" },
 ];
 
-const MOTIFS_RESTITUTION = [
-  { code: "acte", label: "Clause de retour prévue par l'acte de don ou de dépôt" },
-  { code: "refus", label: "Refus du service : hors de sa politique de collecte" },
-  { code: "doublon", label: "Doublon d'un exemplaire déjà conservé ailleurs" },
-  { code: "horschamp", label: "Sans lien avec l'objet du fonds proposé" },
-];
-
 const SORTS = [
   { code: "conservation", label: "Conservation définitive" },
   { code: "elimination", label: "Élimination" },
 ];
-
-function libelleSort(code, nature) {
-  if (code !== "elimination") return "Conservation définitive";
-  return nature === "privee" ? "Retrait (non conservé)" : "Élimination";
-}
 
 /* Certaines séries se cotent numéro puis code (472 HBL, 152 ETP,
    2654 CAITM) ; les autres suivent le schéma sous-série, lettre,
@@ -2688,13 +2676,14 @@ export default function SiaMoselle() {
   };
 
   const conserves = notices.filter((n) => n.sort !== "elimination");
+  /* Un fonds privé ne se voit jamais proposer le sort "élimination" à
+     la collecte (voir enregistrerVersement) : cette liste ne contient
+     donc que des archives publiques. */
   const elimines = notices.filter((n) => n.sort === "elimination");
-  const eliminesPubliques = elimines.filter((n) => n.nature !== "privee");
-  const retraitsPrives = elimines.filter((n) => n.nature === "privee");
   const mlRecu = notices
     .filter((n) => n.support === "physique")
     .reduce((t, n) => t + (n.mesure || 0), 0);
-  const mlElimine = eliminesPubliques
+  const mlElimine = elimines
     .filter((n) => n.support === "physique")
     .reduce((t, n) => t + (n.mesure || 0), 0);
 
@@ -2708,6 +2697,19 @@ export default function SiaMoselle() {
     setFArticles((prev) =>
       prev.map((a, k) => (k === i ? { ...a, [champ]: valeur } : a))
     );
+  };
+
+  /* Un fonds privé n'entre pas dans le circuit d'élimination du
+     service (il est restitué, pas détruit) : dès que la nature passe
+     à "privée", tout sort déjà choisi sur les articles en cours de
+     saisie retombe sur la conservation. */
+  const choisirNature = (val) => {
+    setFNature(val);
+    if (val === "privee") {
+      setFArticles((prev) =>
+        prev.map((a) => ({ ...a, sort: "conservation", justification: "dua" }))
+      );
+    }
   };
 
   const ajouterLigne = () => setFArticles((prev) => [...prev, ligneVide()]);
@@ -2762,43 +2764,51 @@ export default function SiaMoselle() {
     const numVersement =
       new Set(notices.filter((n) => n.versement).map((n) => n.versement)).size + 1;
 
-    const motifsSort = fNature === "privee" ? MOTIFS_RESTITUTION : MOTIFS_ELIMINATION;
-
-    const ajouts = prets.map((a, i) => ({
-      id: `${versement}-${i}`,
-      versement,
-      cote: null,
-      intitule: a.intitule.trim(),
-      dates: a.dates.trim(),
-      producteur,
-      nature: fNature,
-      comm: a.comm,
-      motif:
-        a.comm === "libre"
-          ? ""
-          : (
-              MOTIFS_COMMUNICABILITE.find((m) => m.code === a.motif) ||
-              MOTIFS_COMMUNICABILITE[1]
-            ).label,
-      support: a.support,
-      mesure: a.mesure,
-      sort: a.sort,
-      justification:
-        a.sort === "elimination"
-          ? (motifsSort.find((m) => m.code === a.justification) || motifsSort[0]).label
-          : "",
-      serie: "",
-      loc:
-        a.sort === "elimination"
-          ? null
-          : a.support === "numerique"
-          ? {
-              sae: true,
-              site: "SAE de la Moselle",
-              identifiant: identifiantSAE(annee, numVersement),
-            }
-          : null,
-    }));
+    /* Un fonds privé n'est jamais éliminé par le service : il est
+       restitué à la personne selon les termes de l'acte de don, de
+       dépôt ou d'achat. Le sort "élimination" n'existe donc que pour
+       les archives publiques — on le neutralise ici quelle que soit
+       la valeur saisie, par défense en profondeur en plus de
+       l'absence du sélecteur côté formulaire. */
+    const ajouts = prets.map((a, i) => {
+      const sort = fNature === "privee" ? "conservation" : a.sort;
+      return {
+        id: `${versement}-${i}`,
+        versement,
+        cote: null,
+        intitule: a.intitule.trim(),
+        dates: a.dates.trim(),
+        producteur,
+        nature: fNature,
+        comm: a.comm,
+        motif:
+          a.comm === "libre"
+            ? ""
+            : (
+                MOTIFS_COMMUNICABILITE.find((m) => m.code === a.motif) ||
+                MOTIFS_COMMUNICABILITE[1]
+              ).label,
+        support: a.support,
+        mesure: a.mesure,
+        sort,
+        justification:
+          sort === "elimination"
+            ? (MOTIFS_ELIMINATION.find((m) => m.code === a.justification) || MOTIFS_ELIMINATION[0])
+                .label
+            : "",
+        serie: "",
+        loc:
+          sort === "elimination"
+            ? null
+            : a.support === "numerique"
+            ? {
+                sae: true,
+                site: "SAE de la Moselle",
+                identifiant: identifiantSAE(annee, numVersement),
+              }
+            : null,
+      };
+    });
 
     const liste = [...notices, ...ajouts];
     enregistrer(liste);
@@ -2933,8 +2943,8 @@ export default function SiaMoselle() {
   /* Le bordereau d'élimination : même la destruction laisse une archive.
      Sans le visa du directeur, rien ne peut être détruit. */
   const editerBordereau = () => {
-    if (eliminesPubliques.length === 0) return;
-    const producteurs = [...new Set(eliminesPubliques.map((n) => n.producteur))];
+    if (elimines.length === 0) return;
+    const producteurs = [...new Set(elimines.map((n) => n.producteur))];
     const annee = new Date().getFullYear();
     const L = [];
     L.push("=".repeat(78));
@@ -2944,12 +2954,12 @@ export default function SiaMoselle() {
     L.push("");
     L.push(`Service producteur : ${producteurs.join(" / ")}`);
     L.push(`Annee : ${annee}`);
-    L.push(`Nombre d'articles proposes a l'elimination : ${eliminesPubliques.length}`);
+    L.push(`Nombre d'articles proposes a l'elimination : ${elimines.length}`);
     L.push("");
     L.push("-".repeat(78));
     L.push("N°  ANALYSE SOMMAIRE / DATES EXTREMES / METRAGE / JUSTIFICATION");
     L.push("-".repeat(78));
-    eliminesPubliques.forEach((n, i) => {
+    elimines.forEach((n, i) => {
       L.push(`${String(i + 1).padStart(3, " ")}  ${n.intitule}`);
       L.push(`     Dates extremes : ${n.dates}`);
       L.push(
@@ -3085,10 +3095,7 @@ export default function SiaMoselle() {
     enregistrer(liste);
   };
 
-  /* Une ligne du bordereau public et une ligne de retrait privé se
-     ressemblent, mais leurs actions n'ont pas le même fondement : visa
-     du directeur d'un côté, clause contractuelle de l'autre. */
-  const ligneRetrait = (n, prive) => (
+  const ligneElim = (n) => (
     <div className={`sia-elimligne${n.visa === "accepte" ? " vise" : ""}`} key={n.id}>
       <div className="sia-elimint">{n.intitule}</div>
       <div className="sia-elimmeta">
@@ -3097,17 +3104,16 @@ export default function SiaMoselle() {
       <div className="sia-elimjust">{n.justification}</div>
       {n.visa === "accepte" ? (
         <div className="sia-visa">
-          {prive
-            ? "Retrait confirmé — l'article sort des collections. La ligne demeure au registre."
-            : "Visa accordé — article détruit. La ligne demeure au bordereau, qui est conservé définitivement."}
+          Visa accordé — article détruit. La ligne demeure au bordereau, qui est conservé
+          définitivement.
         </div>
       ) : (
         <div className="sia-elimactions">
           <button className="sia-link sia-mini" onClick={() => accepterElimination(n.id)}>
-            {prive ? "Retrait confirmé" : "Élimination acceptée"}
+            Élimination acceptée
           </button>
           <button className="sia-link sia-mini" onClick={() => refuserElimination(n.id)}>
-            {prive ? "Retrait annulé" : "Élimination refusée"}
+            Élimination refusée
           </button>
         </div>
       )}
@@ -3643,7 +3649,7 @@ export default function SiaMoselle() {
                     if (val !== "__nouveau__") {
                       setFNouveauProd("");
                       const connue = natureDeProducteur(val);
-                      if (connue) setFNature(connue);
+                      if (connue) choisirNature(connue);
                     }
                   }}
                 >
@@ -3684,7 +3690,7 @@ export default function SiaMoselle() {
                   id="f-nature"
                   className="sia-select"
                   value={fNature}
-                  onChange={(e) => setFNature(e.target.value)}
+                  onChange={(e) => choisirNature(e.target.value)}
                 >
                   <option value="publique">Archives publiques</option>
                   <option value="privee">Archives privées</option>
@@ -3716,9 +3722,7 @@ export default function SiaMoselle() {
                   <div className="sia-articlehead">
                     <span className="sia-articlenum">Article {i + 1}</span>
                     {a.sort === "elimination" && (
-                      <span className="sia-badgeelim">
-                        {fNature === "privee" ? "à retirer" : "à éliminer"}
-                      </span>
+                      <span className="sia-badgeelim">à éliminer</span>
                     )}
                     {fArticles.length > 1 && (
                       <button
@@ -3791,52 +3795,61 @@ export default function SiaMoselle() {
                     </div>
                   )}
 
-                  <div className="sia-champ">
-                    <label htmlFor={`a-sort-${i}`}>Sort final</label>
-                    <select
-                      id={`a-sort-${i}`}
-                      className="sia-select"
-                      value={a.sort}
-                      onChange={(e) => majArticle(i, "sort", e.target.value)}
-                    >
-                      {SORTS.map((so) => (
-                        <option key={so.code} value={so.code}>
-                          {libelleSort(so.code, fNature)}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="sia-aide">
-                      {fNature === "privee"
-                        ? "Un fonds privé n'entre pas forcément dans les collections : après examen, un article peut être retiré au lieu d'être conservé."
-                        : "Tout n'est pas conservé : après sa durée d'utilité administrative, un document est détruit, trié, ou versé définitivement."}
+                  {fNature === "privee" ? (
+                    <div className="sia-controle info">
+                      <span className="sia-ctrlpicto" aria-hidden="true">i</span>
+                      <span>
+                        <b>Pas de sort final pour un fonds privé.</b> Le service n'élimine pas les
+                        documents d'un fonds privé : il les restitue à la personne, selon les
+                        clauses de l'acte de don, de dépôt ou d'achat qui les a fait entrer. Cet
+                        article est conservé tant que le contrat ne prévoit pas sa restitution.
+                      </span>
                     </div>
-                  </div>
-
-                  {a.sort === "elimination" && (
-                    <div className="sia-champ">
-                      <label htmlFor={`a-just-${i}`}>
-                        {fNature === "privee" ? "Motif du retrait" : "Motif de l'élimination"}
-                      </label>
-                      <select
-                        id={`a-just-${i}`}
-                        className="sia-select"
-                        value={a.justification}
-                        onChange={(e) => majArticle(i, "justification", e.target.value)}
-                      >
-                        {(fNature === "privee" ? MOTIFS_RESTITUTION : MOTIFS_ELIMINATION).map(
-                          (m) => (
-                            <option key={m.code} value={m.code}>
-                              {m.label}
+                  ) : (
+                    <>
+                      <div className="sia-champ">
+                        <label htmlFor={`a-sort-${i}`}>Sort final</label>
+                        <select
+                          id={`a-sort-${i}`}
+                          className="sia-select"
+                          value={a.sort}
+                          onChange={(e) => majArticle(i, "sort", e.target.value)}
+                        >
+                          {SORTS.map((so) => (
+                            <option key={so.code} value={so.code}>
+                              {so.label}
                             </option>
-                          )
-                        )}
-                      </select>
-                      <div className="sia-aide">
-                        {fNature === "privee"
-                          ? "Un fonds privé n'est pas détruit unilatéralement : sa sortie suit les clauses de l'acte de don, de dépôt ou d'achat qui l'a fait entrer."
-                          : "Les motifs d'élimination forment une liste fixée par les tableaux de gestion : ce n'est pas une appréciation personnelle. Le service versant propose, le directeur des Archives vise."}
+                          ))}
+                        </select>
+                        <div className="sia-aide">
+                          Tout n'est pas conservé : après sa durée d'utilité administrative, un
+                          document est détruit, trié, ou versé définitivement.
+                        </div>
                       </div>
-                    </div>
+
+                      {a.sort === "elimination" && (
+                        <div className="sia-champ">
+                          <label htmlFor={`a-just-${i}`}>Motif de l'élimination</label>
+                          <select
+                            id={`a-just-${i}`}
+                            className="sia-select"
+                            value={a.justification}
+                            onChange={(e) => majArticle(i, "justification", e.target.value)}
+                          >
+                            {MOTIFS_ELIMINATION.map((m) => (
+                              <option key={m.code} value={m.code}>
+                                {m.label}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="sia-aide">
+                            Les motifs d'élimination forment une liste fixée par les tableaux de
+                            gestion : ce n'est pas une appréciation personnelle. Le service
+                            versant propose, le directeur des Archives vise.
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <div className="sia-loc2">
@@ -3893,15 +3906,11 @@ export default function SiaMoselle() {
             {elimines.length > 0 && (
               <div className="sia-rappelelim">
                 <span>
-                  {eliminesPubliques.length > 0 &&
-                    `${eliminesPubliques.length} article${eliminesPubliques.length > 1 ? "s" : ""} proposé${eliminesPubliques.length > 1 ? "s" : ""} à l'élimination`}
-                  {eliminesPubliques.length > 0 && retraitsPrives.length > 0 && " · "}
-                  {retraitsPrives.length > 0 &&
-                    `${retraitsPrives.length} article${retraitsPrives.length > 1 ? "s" : ""} de fonds privé à retirer`}
-                  .
+                  {elimines.length} article{elimines.length > 1 ? "s" : ""} proposé
+                  {elimines.length > 1 ? "s" : ""} à l'élimination.
                 </span>
                 <button className="sia-inline" onClick={() => allerA("elimination")}>
-                  Voir le détail
+                  Voir le bordereau
                 </button>
               </div>
             )}
@@ -4434,70 +4443,49 @@ export default function SiaMoselle() {
               <div className="sia-eyebrow">Module d'élimination</div>
               <h1>Ce qui n'entre pas dans le fonds</h1>
               <p>
-                Tout n'est pas conservé. Une archive publique se détruit après visa du directeur ;
-                un fonds privé ne sort que selon les clauses de l'acte qui l'a fait entrer — ce
-                n'est jamais une élimination unilatérale.
+                Tout n'est pas conservé. Les articles écartés à la collecte figurent au bordereau
+                d'élimination, qui doit être visé avant toute destruction. Cela ne concerne que
+                les archives publiques : un fonds privé n'est jamais éliminé par le service, il
+                est restitué à la personne selon les clauses de l'acte qui l'a fait entrer.
               </p>
             </div>
 
             {elimines.length === 0 ? (
               <div className="sia-vide">
-                Aucun article écarté du fonds. Le sort final se choisit à la collecte, sur chaque
-                article du versement.
+                Aucun article proposé à l'élimination. Le sort final se choisit à la collecte,
+                sur chaque article d'un fonds public du versement.
               </div>
             ) : (
-              <>
-                {eliminesPubliques.length > 0 && (
-                  <div className="sia-bordereau">
-                    <div className="sia-bordhead">
-                      <div className="sia-eyebrow" style={{ textAlign: "left", margin: 0 }}>
-                        Bordereau d'élimination — archives publiques ({eliminesPubliques.length})
-                      </div>
-                      <button className="sia-link sia-mini" onClick={editerBordereau}>
-                        Éditer le bordereau
-                      </button>
-                    </div>
+              <div className="sia-bordereau">
+                <div className="sia-bordhead">
+                  <div className="sia-eyebrow" style={{ textAlign: "left", margin: 0 }}>
+                    Bordereau d'élimination ({elimines.length})
+                  </div>
+                  <button className="sia-link sia-mini" onClick={editerBordereau}>
+                    Éditer le bordereau
+                  </button>
+                </div>
 
-                    {mlRecu > 0 && (
-                      <div className="sia-ratio">
-                        <span className="sia-ratiochiffre">
-                          {Math.round(((mlRecu - mlElimine) / mlRecu) * 100)} %
-                        </span>
-                        <span>
-                          conservés — {(mlRecu - mlElimine).toFixed(2)} ml sur {mlRecu.toFixed(2)}{" "}
-                          ml reçus. Le reste est proposé à l'élimination.
-                        </span>
-                      </div>
-                    )}
-
-                    {eliminesPubliques.map((n) => ligneRetrait(n, false))}
-
-                    <div className="sia-elimnote">
-                      Ces articles n'entrent pas dans le fonds : ni cote, ni série, ni
-                      emplacement. Rien ne peut être détruit sans le visa du directeur — et le
-                      bordereau, lui, est conservé définitivement.
-                    </div>
+                {mlRecu > 0 && (
+                  <div className="sia-ratio">
+                    <span className="sia-ratiochiffre">
+                      {Math.round(((mlRecu - mlElimine) / mlRecu) * 100)} %
+                    </span>
+                    <span>
+                      conservés — {(mlRecu - mlElimine).toFixed(2)} ml sur {mlRecu.toFixed(2)} ml
+                      reçus. Le reste est proposé à l'élimination.
+                    </span>
                   </div>
                 )}
 
-                {retraitsPrives.length > 0 && (
-                  <div className="sia-bordereau" style={{ marginTop: "1.6rem" }}>
-                    <div className="sia-bordhead">
-                      <div className="sia-eyebrow" style={{ textAlign: "left", margin: 0 }}>
-                        Fonds privés retirés ({retraitsPrives.length})
-                      </div>
-                    </div>
+                {elimines.map((n) => ligneElim(n))}
 
-                    {retraitsPrives.map((n) => ligneRetrait(n, true))}
-
-                    <div className="sia-elimnote">
-                      Ces articles n'ont pas de cote ni d'emplacement : ils ne sont pas entrés
-                      dans le fonds. Leur sortie suit les clauses de l'acte de don, de dépôt ou
-                      d'achat — pas un bordereau d'élimination, propre aux archives publiques.
-                    </div>
-                  </div>
-                )}
-              </>
+                <div className="sia-elimnote">
+                  Ces articles n'entrent pas dans le fonds : ni cote, ni série, ni emplacement.
+                  Rien ne peut être détruit sans le visa du directeur — et le bordereau, lui, est
+                  conservé définitivement.
+                </div>
+              </div>
             )}
           </>
         )}
