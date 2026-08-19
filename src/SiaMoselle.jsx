@@ -211,6 +211,295 @@ const AFFICHE_CFTC =
   "woBlnJeLvJuwoYZo9QMm1O6L9sDdk3YbiC2R/wDLT/xGTyoT/wDEn/iMEHLvHb7hSJ5MP/KX7ZfkQ/8ALH3OS8l4apdwpE8iH8pH/ccvyIv83/" +
   "kcm7LDYa5dxaV2J5Efq33xiRKjhwWsCucDdhq2GuXcNKH3ZzvaN70kZ+FZ5xWzt+Gv/wAIB6EjPXwb9bR5eLXoR//Z";
 
+/* Reproduction rattachee a une cote precise, quelle que soit son
+   origine : cote du service ou article cree en atelier. */
+const CARTE_NEW_YORK =
+  "data:image/jpeg;base64," +
+  "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" +
+  "XkwYhVjxnbNdUab//Z";
+
+const IMAGES_PAR_COTE = {
+  "690 J 59": {
+    image: CARTE_NEW_YORK,
+    legende:
+      "Carte postale — Brooklyn Bridge, Woolworth et Municipal Buildings, New York. Editions Irving Underhill.",
+  },
+};
+
 /* ============================================================
    Données — jeu fictif calqué sur le cadre de classement AD57
    ============================================================ */
@@ -822,6 +1111,8 @@ const CSS = `
   border-radius:2px;padding:1rem 1.2rem;}
 .sia-type{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
   color:#fff;background:var(--green);padding:.2rem .5rem;border-radius:2px;display:inline-block;}
+.sia-cardatelier{border-left-color:var(--green);}
+.sia-typeatelier{background:#3c5a3e;}
 .sia-cardtitle{font-family:'Libre Baskerville',serif;font-size:1.05rem;margin:.4rem 0 0;}
 .sia-cardmeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.4rem 1rem;
   font-size:.8rem;color:var(--ink-soft);margin:.7rem 0 .9rem;}
@@ -831,9 +1122,21 @@ const CSS = `
 .sia-link{font-size:.8rem;font-weight:600;background:none;border:1px solid var(--green);color:var(--green);
   padding:.4rem .8rem;border-radius:2px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
 .sia-link:hover{background:var(--green);color:#fff;}
+.sia-linkclair{border-color:rgba(233,228,212,.55);color:#e9e4d4;background:rgba(233,228,212,.08);}
+.sia-linkclair:hover{background:#e9e4d4;color:var(--green-dark);border-color:#e9e4d4;}
+.sia-linkclair:focus-visible{outline:2px solid #fff;outline-offset:2px;}
 .sia-link:disabled{opacity:.4;cursor:not-allowed;}
 .sia-link:disabled:hover{background:none;color:var(--green);}
 .sia-link:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.sia-depliant{display:flex;align-items:center;gap:.6rem;width:100%;text-align:left;
+  font-family:'IBM Plex Sans',sans-serif;font-size:.9rem;font-weight:600;
+  color:var(--green-dark);background:var(--card);border:1px solid var(--line);
+  border-left:4px solid var(--green);border-radius:2px;
+  padding:.85rem 1rem;margin-top:1.6rem;cursor:pointer;}
+.sia-depliant:hover{background:var(--paper-dark);border-left-color:var(--red);}
+.sia-depliant:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.sia-depliantfleche{font-size:1rem;color:var(--green);}
+.sia-depliant[aria-expanded="true"]{border-radius:2px 2px 0 0;margin-bottom:0;}
 .sia-noresult{color:var(--ink-soft);font-size:.88rem;padding:.8rem .2rem;}
 
 .sia-foot{text-align:center;font-size:.74rem;color:var(--ink-soft);margin-top:2.2rem;line-height:1.6;}
@@ -849,8 +1152,36 @@ const CSS = `
 .sia-champ input:focus-visible{outline:2px solid var(--red);outline-offset:1px;}
 .sia-aide{font-size:.72rem;color:var(--ink-soft);margin-top:.25rem;}
 .sia-erreur{font-size:.78rem;color:var(--red);margin-bottom:.7rem;}
+.sia-alertestockage{font-size:.78rem;line-height:1.5;color:#8a5a1f;background:#f7ecd9;
+  border:1px solid #dcbb84;border-left:3px solid #c98a3a;border-radius:2px;
+  padding:.6rem .75rem;margin-bottom:.9rem;}
 .sia-valide{font-size:.8rem;color:#3c5a3e;background:#e4ecdf;border:1px solid #a8c2a3;
   border-radius:2px;padding:.5rem .7rem;margin-bottom:.9rem;}
+.sia-bordereau{background:var(--card);border:1px solid var(--line);
+  border-left:4px solid var(--red);border-radius:2px;padding:1rem 1.1rem;}
+.sia-bordhead{display:flex;justify-content:space-between;align-items:center;gap:.6rem;
+  flex-wrap:wrap;margin-bottom:.7rem;}
+.sia-ratio{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;font-size:.8rem;
+  color:var(--ink-soft);background:var(--paper-dark);border-radius:2px;padding:.7rem .8rem;
+  margin-bottom:.9rem;line-height:1.45;}
+.sia-ratiochiffre{font-family:'IBM Plex Mono',monospace;font-size:1.5rem;font-weight:600;
+  color:var(--red);}
+.sia-elimligne{border-top:1px solid var(--paper-dark);padding:.6rem 0;}
+.sia-elimligne.vise .sia-elimint{text-decoration:line-through;color:var(--ink-soft);}
+.sia-elimint{font-size:.85rem;color:var(--ink);}
+.sia-elimmeta{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--ink-soft);margin-top:.1rem;}
+.sia-elimjust{font-size:.76rem;color:#8a5a51;font-style:italic;margin-top:.15rem;}
+.sia-visa{font-family:'IBM Plex Mono',monospace;font-size:.68rem;line-height:1.5;
+  color:#7a3b31;background:#f6e9e6;border:1px solid #d9a49c;border-radius:2px;
+  padding:.45rem .6rem;margin-top:.45rem;}
+.sia-supprnotice{margin-top:.5rem;background:var(--green-dark);color:#fff;
+  border-color:var(--green-dark);}
+.sia-supprnotice:hover{background:var(--red);border-color:var(--red);color:#fff;}
+.sia-elimactions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;}
+.sia-elimnote{font-size:.76rem;color:var(--ink-soft);line-height:1.5;margin-top:.9rem;
+  padding-top:.8rem;border-top:1px dashed var(--line);}
+.sia-rappelelim{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:1.2rem;
+  font-size:.8rem;color:var(--ink-soft);padding-left:.7rem;border-left:3px solid var(--red);}
 .sia-noticeligne{display:flex;justify-content:space-between;align-items:center;gap:.7rem;
   padding:.6rem 0;border-top:1px solid var(--paper-dark);flex-wrap:wrap;}
 .sia-noticecote{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.88rem;}
@@ -910,6 +1241,10 @@ const CSS = `
   padding-top:.9rem;border-top:1px dashed var(--line);}
 .sia-article{background:var(--paper-dark);border:1px solid var(--line);border-left:3px solid var(--kraft);
   border-radius:2px;padding:.9rem 1rem .4rem;margin-bottom:.8rem;}
+.sia-article.elimine{border-left-color:var(--red);background:#f6e9e6;}
+.sia-badgeelim{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.08em;
+  text-transform:uppercase;background:var(--red);color:#fff;padding:.15rem .45rem;
+  border-radius:2px;margin-left:.4rem;}
 .sia-articlehead{display:flex;justify-content:space-between;align-items:baseline;
   gap:.6rem;margin-bottom:.6rem;}
 .sia-articlenum{font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.1em;
@@ -980,7 +1315,7 @@ const CSS = `
 .sia-close:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
 .sia-planche{overflow:auto;padding:1rem;background:repeating-linear-gradient(45deg,#e9e1cd 0 6px,#e5dcc6 6px 12px);}
 .sia-planchecote{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.8rem;
-  letter-spacing:.06em;color:#fff;background:var(--red);display:inline-block;
+  letter-spacing:.06em;color:#fff;background:var(--green);display:inline-block;
   padding:.25rem .6rem;border-radius:2px;margin-bottom:.35rem;
   box-shadow:0 2px 6px rgba(0,0,0,.3);}
 .sia-plancheint{font-family:'Libre Baskerville',serif;font-size:.86rem;line-height:1.4;
@@ -988,6 +1323,17 @@ const CSS = `
   padding:.4rem .6rem;margin-bottom:.6rem;}
 .sia-planche img{display:block;width:100%;height:auto;border:1px solid rgba(0,0,0,.18);
   box-shadow:0 6px 16px rgba(0,0,0,.28);background:#fff;}
+.sia-physique{padding:1.6rem 1.2rem;text-align:center;
+  background:repeating-linear-gradient(45deg,#e9e1cd 0 6px,#e5dcc6 6px 12px);}
+.sia-physcote{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:1rem;
+  letter-spacing:.06em;color:#fff;background:var(--green);display:inline-block;
+  padding:.25rem .7rem;border-radius:2px;}
+.sia-physint{font-family:'Libre Baskerville',serif;font-size:1rem;line-height:1.45;
+  color:var(--ink);margin:.7rem auto .9rem;max-width:32ch;}
+.sia-physnote{font-size:.8rem;color:var(--ink-soft);line-height:1.55;max-width:38ch;
+  margin:0 auto;padding-top:.8rem;border-top:1px dashed var(--line);}
+.sia-physrappel{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:#8f8977;
+  margin-top:.7rem;}
 .sia-legende{padding:.7rem 1rem;font-size:.78rem;color:var(--ink-soft);line-height:1.5;border-top:1px solid var(--line);}
 .sia-interfoot{padding:.7rem 1rem;border-top:1px solid var(--line);display:flex;gap:.5rem;flex-wrap:wrap;}
 
@@ -1358,10 +1704,17 @@ function dessinerDocument(cote, data) {
 
 
 function ClasseurModal({ cote, data, onClose }) {
+  // seul un article numérisé se consulte à l'écran ; un article
+  // physique s'arrête à la chemise, il se lit en salle de lecture
+  const numerique = data.support === "numerique" || (data.loc && data.loc.sae);
+  const jointe =
+    IMAGES_PAR_COTE[cleCote(cote)] ||
+    Object.entries(IMAGES_PAR_COTE).find(([c]) => cleCote(c) === cleCote(cote))?.[1] ||
+    null;
   const [ouvert, setOuvert] = useState(false);
   const bloque = data.comm !== "libre";
   const [refus, setRefus] = useState(false);
-  const [src, setSrc] = useState(bloque ? null : data.image || null);
+  const [src, setSrc] = useState(bloque ? null : data.image || (jointe && jointe.image) || null);
 
   useEffect(() => {
     const esc = (e) => e.key === "Escape" && onClose();
@@ -1371,7 +1724,7 @@ function ClasseurModal({ cote, data, onClose }) {
 
   // pas de reproduction jointe : on dessine le rapport dactylographié
   useEffect(() => {
-    if (bloque || data.image) return;
+    if (bloque || !numerique || data.image || jointe) return;
     try {
       setSrc(dessinerDocument(cote, data).toDataURL("image/png"));
     } catch (e) {
@@ -1383,7 +1736,7 @@ function ClasseurModal({ cote, data, onClose }) {
     if (!src || bloque) return;
     const a = document.createElement("a");
     a.href = src;
-    a.download = `${cote.replace(/[\s/]+/g, "-")}.${data.image ? "jpg" : "png"}`;
+    a.download = `${cote.replace(/[\s/]+/g, "-")}.${data.image || jointe ? "jpg" : "png"}`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1395,16 +1748,23 @@ function ClasseurModal({ cote, data, onClose }) {
       <div className={`sia-classeur${ouvert ? " ouvert" : ""}`}>
         <button
           className="sia-couv"
-          onClick={() => setOuvert(true)}
-          aria-label={`Ouvrir le classeur ${cote}`}
-          tabIndex={ouvert ? -1 : 0}
+          onClick={() => numerique && setOuvert(true)}
+          aria-label={
+            numerique
+              ? `Ouvrir le classeur ${cote}`
+              : `Chemise ${cote} — consultation en salle de lecture`
+          }
+          tabIndex={ouvert || !numerique ? -1 : 0}
+          style={numerique ? undefined : { cursor: "default" }}
         >
           <div className="sia-couvsangle" aria-hidden="true" />
           <div className="sia-couvmention">Archives départementales de la Moselle</div>
           <div className="sia-couvcote">{cote}</div>
           <div className="sia-couvintitule">{data.intitule}</div>
           <div className="sia-couvmention">{data.loc.site}</div>
-          <div className="sia-couvinvite">Cliquez pour ouvrir</div>
+          <div className="sia-couvinvite">
+            {numerique ? "Cliquez pour ouvrir" : "Consultation en salle de lecture"}
+          </div>
         </button>
 
         <div className="sia-interieur">
@@ -1466,6 +1826,22 @@ function ClasseurModal({ cote, data, onClose }) {
                 <div className="sia-invite">Appuyez sur le cadenas</div>
               )}
             </div>
+          ) : !numerique ? (
+            <div className="sia-physique">
+              <div className="sia-physcote">{cote}</div>
+              <div className="sia-physint">{data.intitule}</div>
+              <div className="sia-physnote">
+                Article sur support physique : il n'existe pas de version numérisée.
+                La chemise vous est remise en salle de lecture, où la consultation se fait sur
+                place, sous surveillance.
+              </div>
+              <div className="sia-physrappel">
+                {data.mesure ? `${data.mesure} ml · ` : ""}
+                {data.loc && !data.loc.sae
+                  ? `magasin ${data.loc.magasin} · épi ${data.loc.epi} · travée ${data.loc.travee} · tablette ${data.loc.tablette}`
+                  : ""}
+              </div>
+            </div>
           ) : (
             <div className="sia-planche">
               <div className="sia-planchecote">{cote}</div>
@@ -1485,7 +1861,11 @@ function ClasseurModal({ cote, data, onClose }) {
             <br />
             {bloque
               ? data.commDetail || "Article non communicable."
-              : `${data.imageLegende || "Reproduction numérisée jointe à l'article."} — ${data.dates}`}
+              : `${
+                  data.imageLegende ||
+                  (jointe && jointe.legende) ||
+                  "Reproduction numérisée jointe à l'article."
+                } — ${data.dates}`}
           </div>
 
           <div className="sia-interfoot">
@@ -1516,20 +1896,37 @@ function cleCote(v) {
     .trim();
 }
 
+function stockageDispo() {
+  return (
+    typeof window !== "undefined" &&
+    window.storage &&
+    typeof window.storage.get === "function" &&
+    typeof window.storage.set === "function"
+  );
+}
+
+/* Renvoie la liste enregistrée, [] si rien n'a encore été écrit,
+   null si le stockage n'est pas disponible du tout. */
 async function chargerNotices() {
+  if (!stockageDispo()) return null;
   try {
-    const r = await window.storage.get(CLE_NOTICES);
-    return r ? JSON.parse(r.value) : [];
+    const r = await window.storage.get(CLE_NOTICES, false);
+    if (!r || !r.value) return [];
+    const l = JSON.parse(r.value);
+    return Array.isArray(l) ? l : [];
   } catch (e) {
+    // clé absente au premier lancement : ce n'est pas une panne
     return [];
   }
 }
 
 async function sauverNotices(liste) {
+  if (!stockageDispo()) return false;
   try {
-    await window.storage.set(CLE_NOTICES, JSON.stringify(liste));
+    const r = await window.storage.set(CLE_NOTICES, JSON.stringify(liste), false);
+    return r !== null && r !== undefined;
   } catch (e) {
-    /* persistance indisponible : la session reste utilisable */
+    return false;
   }
 }
 
@@ -1613,8 +2010,69 @@ function identifiantSAE(annee, numVersement) {
 /* Un versement se compose de plusieurs articles : chaque ligne du
    formulaire de collecte décrit un article de l'ensemble. */
 function ligneVide() {
-  return { intitule: "", dates: "", support: "physique", mesure: "", comm: "libre", motif: "" };
+  return {
+    intitule: "",
+    dates: "",
+    support: "physique",
+    mesure: "",
+    comm: "libre",
+    motif: "privee",
+    sort: "conservation",
+    justification: "dua",
+  };
 }
+
+/* Le sort final décide de ce que devient l'article après description :
+   il entre dans le fonds, il est détruit, ou il subit un tri sélectif. */
+/* Délais de communicabilité prévus par le Code du patrimoine.
+   Le principe reste la communicabilité immédiate ; ces délais sont
+   des exceptions, justifiées par la protection d'un secret. */
+/* Topographie des dépôts : Saint-Julien compte cinq magasins,
+   le CAITM deux. Chacun a son nombre d'épis. */
+const MAGASINS = {
+  "Saint-Julien-lès-Metz": [
+    { code: "A", epis: 158 },
+    { code: "B", epis: 100 },
+    { code: "C", epis: 120 },
+    { code: "D", epis: 90 },
+    { code: "E", epis: 64 },
+  ],
+  "CAITM — Saint-Avold": [
+    { code: "A", epis: 158 },
+    { code: "B", epis: 100 },
+  ],
+};
+
+function magasinsDe(site) {
+  return MAGASINS[site] || MAGASINS["Saint-Julien-lès-Metz"];
+}
+
+function episDe(site, magasin) {
+  const m = magasinsDe(site).find((x) => x.code === magasin);
+  return m ? m.epis : 100;
+}
+
+const MOTIFS_COMMUNICABILITE = [
+  { code: "affaires", label: "25 ans — secret des affaires, secret industriel et commercial" },
+  { code: "privee", label: "50 ans — vie privée, comportement d'une personne" },
+  { code: "surete", label: "50 ans — sûreté de l'État, défense nationale" },
+  { code: "etatcivil", label: "75 ans — état civil, dossiers judiciaires, notariat" },
+  { code: "mineur", label: "100 ans — documents concernant un mineur" },
+  { code: "medical", label: "120 ans après la naissance — dossier médical" },
+];
+
+const MOTIFS_ELIMINATION = [
+  { code: "dua", label: "Durée d'utilité administrative échue" },
+  { code: "double", label: "Double dont l'original est conservé ailleurs" },
+  { code: "prepa", label: "Document préparatoire sans valeur d'information" },
+  { code: "compta", label: "Pièce comptable prescrite" },
+  { code: "vrac", label: "Document de gestion courante sans intérêt historique" },
+];
+
+const SORTS = [
+  { code: "conservation", label: "Conservation définitive" },
+  { code: "elimination", label: "Élimination" },
+];
 
 /* Certaines séries se cotent numéro puis code (472 HBL, 152 ETP,
    2654 CAITM) ; les autres suivent le schéma sous-série, lettre,
@@ -1811,7 +2269,7 @@ function BayGrid({ loc, cote, data }) {
                 <button
                   key={t}
                   className={`sia-cell hit${ouvert ? " ouvert" : ""}`}
-                  title={`Travée ${travee}, tablette ${tablette} — ouvrir le classeur`}
+                  title={`Travée ${travee}, tablette ${tablette} — sortir l\u2019article`}
                   aria-label={`Article en travée ${travee}, tablette ${tablette}. Cliquer pour sortir la boîte et ouvrir le classeur.`}
                   onClick={sortirBoite}
                 />
@@ -1822,8 +2280,8 @@ function BayGrid({ loc, cote, data }) {
 
         <div className="sia-boxnote" data-on={ouvert}>
           {ouvert
-            ? `Boîte sortie — classeur ${cote} ouvert`
-            : "Cliquez sur la boîte rouge pour sortir l'article et ouvrir le classeur"}
+            ? `Boîte sortie — chemise ${cote}`
+            : "Cliquez sur la boîte rouge pour sortir l'article du rayonnage"}
         </div>
       </div>
 
@@ -1834,6 +2292,7 @@ function BayGrid({ loc, cote, data }) {
 
 function Fiche({ cote, data }) {
   const [impact, setImpact] = useState(false);
+  const [classeurNum, setClasseurNum] = useState(false);
 
   useEffect(() => {
     setImpact(false);
@@ -1884,7 +2343,14 @@ function Fiche({ cote, data }) {
       <dl className="sia-meta">
         <div className="full"><dt>Analyse</dt><dd>{data.intitule}</dd></div>
         <div><dt>Dates extrêmes</dt><dd>{data.dates}</dd></div>
-        <div><dt>Métrage linéaire</dt><dd>{data.metrage}</dd></div>
+        <div>
+          <dt>
+            {data.support === "numerique" || (data.loc && data.loc.sae)
+              ? "Volume"
+              : "Métrage linéaire"}
+          </dt>
+          <dd>{data.metrage}</dd>
+        </div>
         <div className="full"><dt>Producteur</dt><dd>{data.producteur}</dd></div>
         {data.commDetail && (
           <div className="full"><dt>Communicabilité</dt><dd>{data.commDetail}</dd></div>
@@ -1915,6 +2381,16 @@ function Fiche({ cote, data }) {
             Aucun emplacement physique : le document est conservé dans le système d'archivage
             électronique, sous cet identifiant.
           </div>
+          <button
+            className="sia-link sia-linkclair"
+            style={{ marginTop: ".7rem" }}
+            onClick={() => setClasseurNum(true)}
+          >
+            Consulter le document
+          </button>
+          {classeurNum && (
+            <ClasseurModal cote={cote} data={data} onClose={() => setClasseurNum(false)} />
+          )}
         </div>
       ) : (
       <div className={`sia-loc${impact ? " impact" : ""}`}>
@@ -2033,10 +2509,19 @@ function Repertoire({ rep, onBack, onOpenCote }) {
   );
 }
 
-function ResultCard({ badge, titre, meta, description, coteEx, onOpen, onOpenRepertoire }) {
+function ResultCard({
+  badge,
+  titre,
+  meta,
+  description,
+  coteEx,
+  onOpen,
+  onOpenRepertoire,
+  atelier,
+}) {
   return (
-    <div className="sia-card">
-      <span className="sia-type">{badge}</span>
+    <div className={`sia-card${atelier ? " sia-cardatelier" : ""}`}>
+      <span className={`sia-type${atelier ? " sia-typeatelier" : ""}`}>{badge}</span>
       <div className="sia-cardtitle">{titre}</div>
       <dl className="sia-cardmeta">
         {meta.map(([k, v]) => (
@@ -2045,9 +2530,11 @@ function ResultCard({ badge, titre, meta, description, coteEx, onOpen, onOpenRep
       </dl>
       {description && <p className="sia-carddesc">{description}</p>}
       <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem" }}>
-        <button className="sia-link" onClick={() => onOpen(coteEx)}>
-          Consulter la cote {coteEx} →
-        </button>
+        {coteEx && (
+          <button className="sia-link" onClick={() => onOpen(coteEx)}>
+            Consulter la cote {coteEx} →
+          </button>
+        )}
         {onOpenRepertoire && (
           <button className="sia-link" onClick={onOpenRepertoire}>
             Ouvrir le répertoire
@@ -2072,11 +2559,14 @@ export default function SiaMoselle() {
   const [irFilter, setIrFilter] = useState("");
   const [repertoireOuvert, setRepertoireOuvert] = useState(false);
   const [prodFilter, setProdFilter] = useState("");
+  const [refOuvert, setRefOuvert] = useState(false);
   const [notices, setNotices] = useState([]);
+  const [stockage, setStockage] = useState("inconnu");
   const noticesRef = useRef([]);
   const [fErreur, setFErreur] = useState("");
   const [fValide, setFValide] = useState("");
   const [fProducteur, setFProducteur] = useState("");
+  const [fNouveauProd, setFNouveauProd] = useState("");
   const [fArticles, setFArticles] = useState([ligneVide()]);
   const [mots, setMots] = useState("");
   const [coCible, setCoCible] = useState(null);
@@ -2127,12 +2617,50 @@ export default function SiaMoselle() {
   useEffect(() => {
     let vivant = true;
     chargerNotices().then((l) => {
-      if (vivant && Array.isArray(l) && l.length) setNotices(l);
+      if (!vivant) return;
+      if (l === null) {
+        setStockage("indisponible");
+        return;
+      }
+      setStockage("actif");
+      if (l.length) {
+        noticesRef.current = l;
+        setNotices(l);
+      }
     });
     return () => {
       vivant = false;
     };
   }, []);
+
+  /* Tout enregistrement passe par ici, pour que l'état du stockage
+     reflète ce qui s'est réellement passé. */
+  /* Les articles éliminés quittent le circuit : ni classés, ni cotés,
+     ni rangés. Ils ne subsistent que dans le bordereau. */
+  /* Référentiel des producteurs : ceux du service, plus ceux
+     identifiés en atelier. On rattache un versement à une origine
+     connue plutôt que d'en créer une nouvelle à chaque fois. */
+  const producteursConnus = [
+    ...new Set([
+      ...PRODUCTEURS.map((p) => p.nom),
+      ...notices.map((n) => n.producteur).filter(Boolean),
+    ]),
+  ].sort((a, b) => a.localeCompare(b, "fr"));
+
+  const conserves = notices.filter((n) => n.sort !== "elimination");
+  const elimines = notices.filter((n) => n.sort === "elimination");
+  const mlRecu = notices
+    .filter((n) => n.support === "physique")
+    .reduce((t, n) => t + (n.mesure || 0), 0);
+  const mlElimine = elimines
+    .filter((n) => n.support === "physique")
+    .reduce((t, n) => t + (n.mesure || 0), 0);
+
+  const enregistrer = (liste) => {
+    noticesRef.current = liste;
+    setNotices(liste);
+    sauverNotices(liste).then((ok) => setStockage(ok ? "actif" : "indisponible"));
+  };
 
   const majArticle = (i, champ, valeur) => {
     setFArticles((prev) =>
@@ -2147,11 +2675,16 @@ export default function SiaMoselle() {
 
   /* Un versement entre d'un bloc : un producteur, plusieurs articles. */
   const enregistrerVersement = () => {
-    const producteur = fProducteur.trim();
+    const producteur =
+      fProducteur === "__nouveau__" ? fNouveauProd.trim() : fProducteur.trim();
     setFValide("");
 
+    if (!fProducteur) {
+      setFErreur("Choisissez le producteur du versement.");
+      return;
+    }
     if (!producteur) {
-      setFErreur("Indiquez le producteur du versement.");
+      setFErreur("Indiquez le nom du nouveau producteur.");
       return;
     }
 
@@ -2159,8 +2692,8 @@ export default function SiaMoselle() {
       .map((a, i) => ({ ...a, rang: i + 1 }))
       .filter((a) => a.intitule.trim() || a.dates.trim() || String(a.mesure).trim());
 
-    if (remplies.length < 1) {
-      setFErreur("Décrivez au moins un article.");
+    if (remplies.length === 0) {
+      setFErreur("Décrivez au moins un article du versement.");
       return;
     }
 
@@ -2168,10 +2701,6 @@ export default function SiaMoselle() {
     for (const a of remplies) {
       if (!a.intitule.trim() || !a.dates.trim()) {
         setFErreur(`Article ${a.rang} : renseignez l'intitulé et les dates extrêmes.`);
-        return;
-      }
-      if (a.comm !== "libre" && !a.motif.trim()) {
-        setFErreur(`Article ${a.rang} : indiquez le motif du délai de communicabilité.`);
         return;
       }
       const mesure = parseFloat(String(a.mesure).replace(",", "."));
@@ -2199,12 +2728,26 @@ export default function SiaMoselle() {
       dates: a.dates.trim(),
       producteur,
       comm: a.comm,
-      motif: a.comm === "libre" ? "" : a.motif.trim(),
+      motif:
+        a.comm === "libre"
+          ? ""
+          : (
+              MOTIFS_COMMUNICABILITE.find((m) => m.code === a.motif) ||
+              MOTIFS_COMMUNICABILITE[1]
+            ).label,
       support: a.support,
       mesure: a.mesure,
+      sort: a.sort,
+      justification:
+        a.sort === "elimination"
+          ? (MOTIFS_ELIMINATION.find((m) => m.code === a.justification) || MOTIFS_ELIMINATION[0])
+              .label
+          : "",
       serie: "",
       loc:
-        a.support === "numerique"
+        a.sort === "elimination"
+          ? null
+          : a.support === "numerique"
           ? {
               sae: true,
               site: "SAE de la Moselle",
@@ -2214,16 +2757,15 @@ export default function SiaMoselle() {
     }));
 
     const liste = [...notices, ...ajouts];
-    noticesRef.current = liste;
-    setNotices(liste);
-    sauverNotices(liste);
+    enregistrer(liste);
     setFErreur("");
-    const pl = ajouts.length > 1;
     setFValide(
-      `Versement enregistré : ${ajouts.length} article${pl ? "s" : ""} décrit${pl ? "s" : ""} pour ${producteur}. ` +
-        `Étape suivante : ${pl ? "les classer, ce qui leur donnera leur cote" : "le classer, ce qui lui donnera sa cote"}.`
+      `Versement enregistré : ${ajouts.length} article${ajouts.length > 1 ? "s" : ""} ` +
+        `décrit${ajouts.length > 1 ? "s" : ""} pour ${producteur}. ` +
+        "Étape suivante : les classer, ce qui leur donnera leur cote."
     );
     setFProducteur("");
+    setFNouveauProd("");
     setFArticles([ligneVide()]);
   };
 
@@ -2261,18 +2803,14 @@ export default function SiaMoselle() {
       return;
     }
     const liste = notices.map((a) => (a.id === id ? { ...a, cote } : a));
-    noticesRef.current = liste;
-    setNotices(liste);
-    sauverNotices(liste);
+    enregistrer(liste);
     setCoSaisie("");
     setCoCible(null);
   };
 
   const classerNotice = (id, serie) => {
     const liste = notices.map((n) => (n.id === id ? { ...n, serie } : n));
-    noticesRef.current = liste;
-    setNotices(liste);
-    sauverNotices(liste);
+    enregistrer(liste);
     setCoErreur("");
     if (serie) {
       setCoCible(id);
@@ -2289,7 +2827,7 @@ export default function SiaMoselle() {
     const epi = parseInt(cEpi, 10);
     const travee = parseInt(cTravee, 10);
     const tablette = parseInt(cTablette, 10);
-    const totalEpis = cMagasin === "A" ? 158 : 100;
+    const totalEpis = episDe(cSite, cMagasin);
 
     if (!epi || !travee || !tablette) {
       setCErreur("Renseignez l'épi, la travée et la tablette.");
@@ -2335,9 +2873,7 @@ export default function SiaMoselle() {
       totalTablettes: 6,
     };
     const liste = notices.map((n) => (n.id === id ? { ...n, loc } : n));
-    noticesRef.current = liste;
-    setNotices(liste);
-    sauverNotices(liste);
+    enregistrer(liste);
     setPlacement(null);
     setCEpi("");
     setCTravee("");
@@ -2346,9 +2882,80 @@ export default function SiaMoselle() {
 
   const retirerNotice = (id) => {
     const liste = notices.map((n) => (n.id === id ? { ...n, loc: null } : n));
-    noticesRef.current = liste;
-    setNotices(liste);
-    sauverNotices(liste);
+    enregistrer(liste);
+  };
+
+  /* Le bordereau d'élimination : même la destruction laisse une archive.
+     Sans le visa du directeur, rien ne peut être détruit. */
+  const editerBordereau = () => {
+    if (elimines.length === 0) return;
+    const producteurs = [...new Set(elimines.map((n) => n.producteur))];
+    const annee = new Date().getFullYear();
+    const L = [];
+    L.push("=".repeat(78));
+    L.push("ARCHIVES DEPARTEMENTALES DE LA MOSELLE");
+    L.push("BORDEREAU D'ELIMINATION");
+    L.push("=".repeat(78));
+    L.push("");
+    L.push(`Service producteur : ${producteurs.join(" / ")}`);
+    L.push(`Annee : ${annee}`);
+    L.push(`Nombre d'articles proposes a l'elimination : ${elimines.length}`);
+    L.push("");
+    L.push("-".repeat(78));
+    L.push("N°  ANALYSE SOMMAIRE / DATES EXTREMES / METRAGE / JUSTIFICATION");
+    L.push("-".repeat(78));
+    elimines.forEach((n, i) => {
+      L.push(`${String(i + 1).padStart(3, " ")}  ${n.intitule}`);
+      L.push(`     Dates extremes : ${n.dates}`);
+      L.push(
+        `     Metrage : ${n.mesure} ${n.support === "numerique" ? "Go" : "ml"}`
+      );
+      L.push(`     Justification : ${n.justification || "non renseignee"}`);
+      L.push(
+        `     Visa : ${n.visa === "accepte" ? "accorde — article detruit" : "en attente"}`
+      );
+      L.push("");
+    });
+    L.push("-".repeat(78));
+    L.push(`TOTAL PROPOSE A L'ELIMINATION : ${mlElimine.toFixed(2)} ml`);
+    if (mlRecu > 0) {
+      const garde = mlRecu - mlElimine;
+      const taux = Math.round((garde / mlRecu) * 100);
+      L.push(
+        `Sur ${mlRecu.toFixed(2)} ml recus, ${garde.toFixed(2)} ml conserves — ${taux} %.`
+      );
+    }
+    L.push("-".repeat(78));
+    L.push("");
+    L.push("Le service versant propose l'elimination des documents ci-dessus :");
+    L.push("");
+    L.push("   Date :                    Nom et signature :");
+    L.push("");
+    L.push("");
+    L.push("Visa du directeur des Archives departementales de la Moselle :");
+    L.push("");
+    L.push("   Date :                    Nom et signature :");
+    L.push("");
+    L.push("=".repeat(78));
+    L.push("Aucune archive publique ne peut etre detruite sans ce visa.");
+    L.push("Le present bordereau est conserve definitivement.");
+    L.push("=".repeat(78));
+
+    try {
+      const blob = new Blob(["\uFEFF" + L.join("\n")], {
+        type: "text/plain;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bordereau-elimination.txt";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (e) {
+      /* telechargement indisponible */
+    }
   };
 
   /* Le plan de classement devient un vrai instrument de recherche. */
@@ -2412,11 +3019,25 @@ export default function SiaMoselle() {
     }
   };
 
+  /* Une décision d'élimination se révise tant que le bordereau
+     n'est pas visé : l'article réintègre alors le circuit. */
+  /* Le visa du directeur : sans lui, rien ne peut être détruit.
+     Un refus fait réintégrer l'article dans le fonds. */
+  const refuserElimination = (id) => {
+    enregistrer(
+      notices.map((n) =>
+        n.id === id ? { ...n, sort: "conservation", justification: "", visa: null } : n
+      )
+    );
+  };
+
+  const accepterElimination = (id) => {
+    enregistrer(notices.map((n) => (n.id === id ? { ...n, visa: "accepte" } : n)));
+  };
+
   const supprimerNotice = (id) => {
     const liste = notices.filter((n) => n.id !== id);
-    noticesRef.current = liste;
-    setNotices(liste);
-    sauverNotices(liste);
+    enregistrer(liste);
   };
 
   /* L'instrument de recherche numérique : on part d'une question,
@@ -2516,15 +3137,39 @@ export default function SiaMoselle() {
   /* Respect des fonds : on regroupe les articles collectés par origine. */
   const producteursAtelier = (() => {
     const carte = new Map();
+    // un producteur dont tout a été éliminé reste un producteur qui a versé
     notices.forEach((n) => {
       const nom = (n.producteur || "non renseigné").trim();
-      if (!carte.has(nom)) carte.set(nom, { nom, cotes: [], series: [] });
+      if (!carte.has(nom)) {
+        carte.set(nom, {
+          nom,
+          cotes: [],
+          series: [],
+          versements: [],
+          conserves: 0,
+          elimines: 0,
+        });
+      }
       const e = carte.get(nom);
-      e.cotes.push(n.cote || "sans cote");
-      if (n.serie && !e.series.includes(n.serie)) e.series.push(n.serie);
+      if (n.sort === "elimination") {
+        e.elimines += 1;
+      } else {
+        e.conserves += 1;
+        e.cotes.push(n.cote || "sans cote");
+        if (n.serie && !e.series.includes(n.serie)) e.series.push(n.serie);
+      }
+      if (n.versement && !e.versements.includes(n.versement)) e.versements.push(n.versement);
     });
-    return [...carte.values()];
+    return [...carte.values()].sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
   })();
+
+  const producteursAtelierFiltres = producteursAtelier.filter((pa) => {
+    const q = prodFilter.trim().toLowerCase();
+    if (!q) return true;
+    return [pa.nom, ...pa.series, ...pa.cotes].some((f) =>
+      String(f).toLowerCase().includes(q)
+    );
+  });
 
   const filteredProd = PRODUCTEURS.filter((p) => {
     const q = prodFilter.trim().toLowerCase();
@@ -2535,13 +3180,13 @@ export default function SiaMoselle() {
   /* La chaîne archivistique, dans l'ordre où les gestes s'accomplissent.
      Le compteur montre combien d'articles ont franchi chaque étape. */
   const ETAPES = [
-    { id: "collecte", label: "Collecter", fait: notices.length },
-    { id: "classement", label: "Classer", fait: notices.filter((n) => n.cote).length },
-    { id: "conservation", label: "Conserver", fait: notices.filter((n) => n.loc).length },
+    { id: "collecte", label: "Collecter", fait: conserves.length },
+    { id: "classement", label: "Classer", fait: conserves.filter((n) => n.cote).length },
+    { id: "conservation", label: "Conserver", fait: conserves.filter((n) => n.loc).length },
     {
       id: "recherche",
       label: "Communiquer",
-      fait: notices.filter((n) => n.loc && n.cote).length,
+      fait: conserves.filter((n) => n.loc && n.cote).length,
     },
   ];
 
@@ -2614,6 +3259,13 @@ export default function SiaMoselle() {
             onClick={() => allerA("producteurs")}
           >
             Producteurs
+          </button>
+          <button
+            className="sia-ressource"
+            data-active={tab === "elimination"}
+            onClick={() => allerA("elimination")}
+          >
+            Éliminer{elimines.length > 0 ? ` (${elimines.length})` : ""}
           </button>
         </nav>
       </header>
@@ -2772,9 +3424,9 @@ export default function SiaMoselle() {
           <>
             <div className="sia-intro">
               <div className="sia-eyebrow">Module des producteurs</div>
-              <h1>Identifier les producteurs</h1>
+              <h1>Les fonds constitués</h1>
               <p>
-                Services, collectivités et entreprises dont les fonds sont conservés. C'est
+                Un fonds par producteur, quel que soit le nombre de versements reçus. C'est
                 l'origine des documents, et non leur sujet, qui commande le classement.
               </p>
             </div>
@@ -2784,32 +3436,72 @@ export default function SiaMoselle() {
               placeholder="Filtrer par nom, type ou cote…"
               onChange={(e) => setProdFilter(e.target.value)}
             />
-            {producteursAtelier.length > 0 && (
-              <div className="sia-plan" style={{ marginTop: 0, marginBottom: "1.6rem" }}>
-                <div className="sia-eyebrow" style={{ textAlign: "left" }}>
-                  Producteurs identifiés en atelier ({producteursAtelier.length})
-                </div>
-                {producteursAtelier.map((pa) => (
-                  <div className="sia-plangroupe" key={pa.nom}>
-                    <div className="sia-plantitre">{pa.nom}</div>
-                    <div className="sia-plansous">
-                      {pa.cotes.length} article{pa.cotes.length > 1 ? "s" : ""}
-                      {pa.series.length > 0 ? ` · série${pa.series.length > 1 ? "s" : ""} ${pa.series.join(", ")}` : " · non classé"}
-                    </div>
-                    {pa.cotes.map((c) => (
-                      <div className="sia-planart" key={c}>
-                        <b>{c}</b>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+            {producteursAtelier.length === 0 && (
+              <div className="sia-vide" style={{ marginBottom: "1.2rem" }}>
+                Aucun fonds constitué pour l'instant. Chaque versement enregistré fera apparaître
+                ici le fonds de son producteur.
               </div>
             )}
 
-            <div className="sia-eyebrow" style={{ textAlign: "left" }}>
-              Producteurs du service
-            </div>
-            <div className="sia-list">
+            {producteursAtelierFiltres.length > 0 && (
+              <>
+                <div className="sia-eyebrow" style={{ textAlign: "left" }}>
+                  Fonds constitués en atelier ({producteursAtelierFiltres.length})
+                </div>
+                <div className="sia-list" style={{ marginBottom: "1.6rem" }}>
+                  {producteursAtelierFiltres.map((pa) => (
+                    <ResultCard
+                      key={pa.nom}
+                      atelier
+                      badge="Producteur identifié en atelier"
+                      titre={pa.nom}
+                      meta={[
+                        [
+                          "Versements",
+                          `${pa.versements.length} versement${pa.versements.length > 1 ? "s" : ""}`,
+                        ],
+                        [
+                          "Fonds associés",
+                          pa.series.length > 0
+                            ? `Série${pa.series.length > 1 ? "s" : ""} ${pa.series.join(", ")}`
+                            : "Non classé",
+                        ],
+                      ]}
+                      description={
+                        pa.conserves === 0
+                          ? `${pa.elimines} article${pa.elimines > 1 ? "s" : ""} proposé${
+                              pa.elimines > 1 ? "s" : ""
+                            } à l'élimination : aucun n'entre dans le fonds.`
+                          : `${pa.conserves} article${pa.conserves > 1 ? "s" : ""} conservé${
+                              pa.conserves > 1 ? "s" : ""
+                            }${
+                              pa.elimines > 0
+                                ? `, ${pa.elimines} proposé${
+                                    pa.elimines > 1 ? "s" : ""
+                                  } à l'élimination`
+                                : ""
+                            }. Cotes : ${pa.cotes.join(", ")}.`
+                      }
+                      coteEx={pa.cotes.find((c) => c !== "sans cote") || null}
+                      onOpen={openCote}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            <button
+              className="sia-depliant"
+              onClick={() => setRefOuvert((v) => !v)}
+              aria-expanded={refOuvert}
+            >
+              <span className="sia-depliantfleche" aria-hidden="true">
+                {refOuvert ? "▾" : "▸"}
+              </span>
+              Producteurs déjà connus du service ({PRODUCTEURS.length})
+            </button>
+
+            <div className="sia-list" style={{ marginTop: ".8rem" }} hidden={!refOuvert}>
               {filteredProd.length === 0 ? (
                 <div className="sia-noresult">Aucun producteur ne correspond à ce filtre.</div>
               ) : (
@@ -2838,30 +3530,64 @@ export default function SiaMoselle() {
               <div className="sia-eyebrow">Module de collecte</div>
               <h1>Collecter un versement</h1>
               <p>
-                Un versement entre d'un bloc : un producteur, un ou plusieurs articles. Décrivez
-                le premier article ci-dessous, et ajoutez-en d'autres si le versement en comporte
-                plusieurs — leur cote leur sera donnée au classement, leur emplacement à la
-                conservation.
+                Un versement entre d'un bloc : un producteur, un ou plusieurs articles.
+                Ajoutez autant de lignes que nécessaire — la cote sera donnée au classement,
+                l'emplacement à la conservation.
               </p>
             </div>
 
             <div className="sia-form">
+              {stockage === "indisponible" && (
+                <div className="sia-alertestockage">
+                  <b>Enregistrement permanent indisponible.</b> Les articles saisis restent
+                  utilisables pendant la séance, mais seront perdus à la fermeture de l'onglet.
+                  Terminez le parcours sans fermer, et éditez l'instrument de recherche pour
+                  conserver une trace.
+                </div>
+              )}
               {fErreur && <div className="sia-erreur">{fErreur}</div>}
               {fValide && <div className="sia-valide">{fValide}</div>}
 
               <div className="sia-champ">
                 <label htmlFor="f-prod">Producteur du versement</label>
-                <input
+                <select
                   id="f-prod"
+                  className="sia-select"
                   value={fProducteur}
-                  placeholder="Ex. Commune de Sarreguemines"
-                  autoComplete="off"
-                  onChange={(e) => setFProducteur(e.target.value)}
-                />
+                  onChange={(e) => {
+                    setFProducteur(e.target.value);
+                    if (e.target.value !== "__nouveau__") setFNouveauProd("");
+                  }}
+                >
+                  <option value="">— Choisir un producteur —</option>
+                  {producteursConnus.map((nom) => (
+                    <option key={nom} value={nom}>
+                      {nom}
+                    </option>
+                  ))}
+                  <option value="__nouveau__">+ Nouveau producteur…</option>
+                </select>
                 <div className="sia-aide">
-                  Qui a produit ou reçu ces documents dans son activité. Tous les articles du
-                  versement partagent le même producteur : c'est ce qui en fait un ensemble.
+                  Qui a produit ou reçu ces documents dans son activité. Rattachez le versement à
+                  un producteur connu : deux versements de même origine alimentent un seul fonds.
                 </div>
+
+                {fProducteur === "__nouveau__" && (
+                  <div className="sia-champ" style={{ marginTop: ".7rem", marginBottom: 0 }}>
+                    <label htmlFor="f-nouvprod">Nom du nouveau producteur</label>
+                    <input
+                      id="f-nouvprod"
+                      value={fNouveauProd}
+                      placeholder="Ex. Commune de Sarreguemines"
+                      autoComplete="off"
+                      onChange={(e) => setFNouveauProd(e.target.value)}
+                    />
+                    <div className="sia-aide">
+                      Reprenez la forme officielle du nom : une même origine écrite de deux façons
+                      donnerait deux fonds là où il n'y en a qu'un.
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="sia-versementtitre">
@@ -2869,9 +3595,12 @@ export default function SiaMoselle() {
               </div>
 
               {fArticles.map((a, i) => (
-                <div className="sia-article" key={i}>
+                <div className={`sia-article${a.sort === "elimination" ? " elimine" : ""}`} key={i}>
                   <div className="sia-articlehead">
                     <span className="sia-articlenum">Article {i + 1}</span>
+                    {a.sort === "elimination" && (
+                      <span className="sia-badgeelim">à éliminer</span>
+                    )}
                     {fArticles.length > 1 && (
                       <button
                         className="sia-inline"
@@ -2923,16 +3652,65 @@ export default function SiaMoselle() {
                   {a.comm !== "libre" && (
                     <div className="sia-champ">
                       <label htmlFor={`a-mot-${i}`}>Motif du délai</label>
-                      <input
+                      <select
                         id={`a-mot-${i}`}
+                        className="sia-select"
                         value={a.motif}
-                        placeholder="Ex. Non communicable — 50 ans (vie privée)"
-                        autoComplete="off"
                         onChange={(e) => majArticle(i, "motif", e.target.value)}
-                      />
+                      >
+                        {MOTIFS_COMMUNICABILITE.map((m) => (
+                          <option key={m.code} value={m.code}>
+                            {m.label}
+                          </option>
+                        ))}
+                      </select>
                       <div className="sia-aide">
-                        25 ans secret industriel · 50 ans vie privée · 75 ans état civil et
-                        justice · 120 ans dossiers médicaux.
+                        Délais fixés par le Code du patrimoine. Le principe reste la
+                        communicabilité immédiate : ces délais sont des exceptions, chacune
+                        justifiée par la protection d'un secret.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="sia-champ">
+                    <label htmlFor={`a-sort-${i}`}>Sort final</label>
+                    <select
+                      id={`a-sort-${i}`}
+                      className="sia-select"
+                      value={a.sort}
+                      onChange={(e) => majArticle(i, "sort", e.target.value)}
+                    >
+                      {SORTS.map((so) => (
+                        <option key={so.code} value={so.code}>
+                          {so.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="sia-aide">
+                      Tout n'est pas conservé : après sa durée d'utilité administrative, un
+                      document est détruit, trié, ou versé définitivement.
+                    </div>
+                  </div>
+
+                  {a.sort === "elimination" && (
+                    <div className="sia-champ">
+                      <label htmlFor={`a-just-${i}`}>Motif de l'élimination</label>
+                      <select
+                        id={`a-just-${i}`}
+                        className="sia-select"
+                        value={a.justification}
+                        onChange={(e) => majArticle(i, "justification", e.target.value)}
+                      >
+                        {MOTIFS_ELIMINATION.map((m) => (
+                          <option key={m.code} value={m.code}>
+                            {m.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="sia-aide">
+                        Les motifs d'élimination forment une liste fixée par les tableaux de
+                        gestion : ce n'est pas une appréciation personnelle. Le service versant
+                        propose, le directeur des Archives vise.
                       </div>
                     </div>
                   )}
@@ -2988,12 +3766,24 @@ export default function SiaMoselle() {
               </div>
             </div>
 
-            {notices.length > 0 && (
+            {elimines.length > 0 && (
+              <div className="sia-rappelelim">
+                <span>
+                  {elimines.length} article{elimines.length > 1 ? "s" : ""} proposé
+                  {elimines.length > 1 ? "s" : ""} à l'élimination.
+                </span>
+                <button className="sia-inline" onClick={() => allerA("elimination")}>
+                  Voir le bordereau
+                </button>
+              </div>
+            )}
+
+            {conserves.length > 0 && (
               <div style={{ marginTop: "1.6rem" }}>
                 <div className="sia-eyebrow" style={{ textAlign: "left" }}>
-                  Notices saisies ({notices.length})
+                  Articles conservés ({conserves.length})
                 </div>
-                {notices.map((n) => (
+                {conserves.map((n) => (
                   <div className="sia-noticeligne" key={n.id}>
                     <div>
                       <div className="sia-noticecote">
@@ -3060,13 +3850,16 @@ export default function SiaMoselle() {
               </p>
             </div>
 
-            {notices.length === 0 ? (
+            {conserves.length === 0 ? (
               <div className="sia-vide">
-                Aucun article à classer. Commencez par en collecter dans l'onglet Collecter.
+                Aucun article à classer.{" "}
+                {elimines.length > 0
+                  ? "Les articles collectés sont tous voués à l'élimination : ils n'entrent pas dans le fonds."
+                  : "Commencez par en collecter dans l'onglet Collecter."}
               </div>
             ) : (
               <>
-                {notices.map((n) => {
+                {conserves.map((n) => {
                   const ctrl = n.serie ? controlerCoherence(n) : null;
                   const etat = ctrl ? ctrl.niveau : null;
                   return (
@@ -3195,7 +3988,7 @@ export default function SiaMoselle() {
                   );
                 })}
 
-                {notices.some((n) => n.serie) && (
+                {conserves.some((n) => n.serie) && (
                   <div className="sia-plan">
                     <div className="sia-planhead">
                       <div className="sia-eyebrow" style={{ textAlign: "left", margin: 0 }}>
@@ -3207,7 +4000,7 @@ export default function SiaMoselle() {
                     </div>
                     {CADRE.map((g) => {
                       const dansGroupe = g.series.filter((se) =>
-                        notices.some((n) => n.serie === se.code)
+                        conserves.some((n) => n.serie === se.code)
                       );
                       if (dansGroupe.length === 0) return null;
                       return dansGroupe.map((se) => (
@@ -3216,7 +4009,7 @@ export default function SiaMoselle() {
                             Série {se.code} — {se.label}
                           </div>
                           <div className="sia-plansous">{g.groupe}</div>
-                          {notices
+                          {conserves
                             .filter((n) => n.serie === se.code)
                             .map((n) => (
                               <div className="sia-planart" key={n.id}>
@@ -3229,12 +4022,12 @@ export default function SiaMoselle() {
                   </div>
                 )}
 
-                {notices.some((n) => !n.serie) && (
+                {conserves.some((n) => !n.serie) && (
                   <div className="sia-plan">
                     <div className="sia-eyebrow" style={{ textAlign: "left" }}>
-                      En attente de classement ({notices.filter((n) => !n.serie).length})
+                      En attente de classement ({conserves.filter((n) => !n.serie).length})
                     </div>
-                    {notices
+                    {conserves
                       .filter((n) => !n.serie)
                       .map((n) => (
                         <div className="sia-planart" key={n.id}>
@@ -3340,13 +4133,16 @@ export default function SiaMoselle() {
               </p>
             </div>
 
-            {notices.length === 0 ? (
+            {conserves.length === 0 ? (
               <div className="sia-vide">
-                Aucun article à conserver. Commencez par en collecter dans l'onglet Collecter.
+                Aucun article à conserver.{" "}
+                {elimines.length > 0
+                  ? "Les articles collectés sont tous voués à l'élimination."
+                  : "Commencez par en collecter dans l'onglet Collecter."}
               </div>
             ) : (
               <>
-                {notices.map((n) => (
+                {conserves.map((n) => (
                   <div
                     className={`sia-classligne${n.loc ? " classe" : ""}`}
                     key={n.id}
@@ -3404,7 +4200,15 @@ export default function SiaMoselle() {
                             id="c-site"
                             className="sia-select"
                             value={cSite}
-                            onChange={(e) => setCSite(e.target.value)}
+                            onChange={(e) => {
+                              const site = e.target.value;
+                              setCSite(site);
+                              // le magasin choisi peut ne pas exister sur l'autre site
+                              if (!magasinsDe(site).some((m) => m.code === cMagasin)) {
+                                setCMagasin(magasinsDe(site)[0].code);
+                              }
+                              setCErreur("");
+                            }}
                           >
                             <option value="Saint-Julien-lès-Metz">Saint-Julien-lès-Metz</option>
                             <option value="CAITM — Saint-Avold">CAITM — Saint-Avold</option>
@@ -3419,8 +4223,11 @@ export default function SiaMoselle() {
                               value={cMagasin}
                               onChange={(e) => setCMagasin(e.target.value)}
                             >
-                              <option value="A">A</option>
-                              <option value="B">B</option>
+                              {magasinsDe(cSite).map((m) => (
+                                <option key={m.code} value={m.code}>
+                                  {m.code}
+                                </option>
+                              ))}
                             </select>
                           </div>
                           <div className="sia-champ">
@@ -3430,7 +4237,7 @@ export default function SiaMoselle() {
                               className="mono"
                               inputMode="numeric"
                               value={cEpi}
-                              placeholder={cMagasin === "A" ? "1–158" : "1–100"}
+                              placeholder={`1–${episDe(cSite, cMagasin)}`}
                               onChange={(e) => setCEpi(e.target.value)}
                             />
                           </div>
@@ -3489,6 +4296,93 @@ export default function SiaMoselle() {
                   </div>
                 ))}
               </>
+            )}
+          </>
+        )}
+
+        {tab === "elimination" && (
+          <>
+            <div className="sia-intro">
+              <div className="sia-eyebrow">Module d'élimination</div>
+              <h1>Ce qui n'entre pas dans le fonds</h1>
+              <p>
+                Tout n'est pas conservé. Les articles écartés à la collecte figurent au bordereau
+                d'élimination, qui doit être visé avant toute destruction.
+              </p>
+            </div>
+
+            {elimines.length === 0 ? (
+              <div className="sia-vide">
+                Aucun article proposé à l'élimination. Le sort final se choisit à la collecte,
+                sur chaque article du versement.
+              </div>
+            ) : (
+              <div className="sia-bordereau">
+                <div className="sia-bordhead">
+                  <div className="sia-eyebrow" style={{ textAlign: "left", margin: 0 }}>
+                    Bordereau d'élimination ({elimines.length})
+                  </div>
+                  <button className="sia-link sia-mini" onClick={editerBordereau}>
+                    Éditer le bordereau
+                  </button>
+                </div>
+
+                {mlRecu > 0 && (
+                  <div className="sia-ratio">
+                    <span className="sia-ratiochiffre">
+                      {Math.round(((mlRecu - mlElimine) / mlRecu) * 100)} %
+                    </span>
+                    <span>
+                      conservés — {(mlRecu - mlElimine).toFixed(2)} ml sur {mlRecu.toFixed(2)} ml
+                      reçus. Le reste est proposé à l'élimination.
+                    </span>
+                  </div>
+                )}
+
+                {elimines.map((n) => (
+                  <div className={`sia-elimligne${n.visa === "accepte" ? " vise" : ""}`} key={n.id}>
+                    <div className="sia-elimint">{n.intitule}</div>
+                    <div className="sia-elimmeta">
+                      {n.dates} · {n.mesure} {n.support === "numerique" ? "Go" : "ml"}
+                    </div>
+                    <div className="sia-elimjust">{n.justification}</div>
+                    {n.visa === "accepte" ? (
+                      <div className="sia-visa">
+                        Visa accordé — article détruit. La ligne demeure au bordereau, qui est
+                        conservé définitivement.
+                      </div>
+                    ) : (
+                      <div className="sia-elimactions">
+                        <button
+                          className="sia-link sia-mini"
+                          onClick={() => accepterElimination(n.id)}
+                        >
+                          Élimination acceptée
+                        </button>
+                        <button
+                          className="sia-link sia-mini"
+                          onClick={() => refuserElimination(n.id)}
+                        >
+                          Élimination refusée
+                        </button>
+                      </div>
+                    )}
+
+                    <button
+                      className="sia-link sia-mini sia-supprnotice"
+                      onClick={() => supprimerNotice(n.id)}
+                    >
+                      Supprimer la notice
+                    </button>
+                  </div>
+                ))}
+
+                <div className="sia-elimnote">
+                  Ces articles n'entrent pas dans le fonds : ni cote, ni série, ni emplacement.
+                  Rien ne peut être détruit sans le visa du directeur — et le bordereau, lui, est
+                  conservé définitivement.
+                </div>
+              </div>
             )}
           </>
         )}
