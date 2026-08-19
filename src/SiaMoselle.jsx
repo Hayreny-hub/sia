@@ -2559,7 +2559,7 @@ export default function SiaMoselle() {
   const [irFilter, setIrFilter] = useState("");
   const [repertoireOuvert, setRepertoireOuvert] = useState(false);
   const [prodFilter, setProdFilter] = useState("");
-  const [refOuvert, setRefOuvert] = useState(false);
+  const [refOuvert, setRefOuvert] = useState(true);
   const [notices, setNotices] = useState([]);
   const [stockage, setStockage] = useState("inconnu");
   const noticesRef = useRef([]);
