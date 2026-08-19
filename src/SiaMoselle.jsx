@@ -2559,7 +2559,7 @@ export default function SiaMoselle() {
   const [irFilter, setIrFilter] = useState("");
   const [repertoireOuvert, setRepertoireOuvert] = useState(false);
   const [prodFilter, setProdFilter] = useState("");
-  const [refOuvert, setRefOuvert] = useState(true);
+  const [refOuvert, setRefOuvert] = useState(false);
   const [notices, setNotices] = useState([]);
   const [stockage, setStockage] = useState("inconnu");
   const noticesRef = useRef([]);
@@ -3501,26 +3501,28 @@ export default function SiaMoselle() {
               Producteurs déjà connus du service ({PRODUCTEURS.length})
             </button>
 
-            <div className="sia-list" style={{ marginTop: ".8rem" }} hidden={!refOuvert}>
-              {filteredProd.length === 0 ? (
-                <div className="sia-noresult">Aucun producteur ne correspond à ce filtre.</div>
-              ) : (
-                filteredProd.map((p) => (
-                  <ResultCard
-                    key={p.coteEx}
-                    badge={p.type}
-                    titre={p.nom}
-                    meta={[
-                      ["Dates d'activité", p.dates],
-                      ["Fonds associés", p.fondsAssocies],
-                    ]}
-                    description={p.description}
-                    coteEx={p.coteEx}
-                    onOpen={openCote}
-                  />
-                ))
-              )}
-            </div>
+            {refOuvert && (
+              <div className="sia-list" style={{ marginTop: ".8rem" }}>
+                {filteredProd.length === 0 ? (
+                  <div className="sia-noresult">Aucun producteur ne correspond à ce filtre.</div>
+                ) : (
+                  filteredProd.map((p) => (
+                    <ResultCard
+                      key={p.coteEx}
+                      badge={p.type}
+                      titre={p.nom}
+                      meta={[
+                        ["Dates d'activité", p.dates],
+                        ["Fonds associés", p.fondsAssocies],
+                      ]}
+                      description={p.description}
+                      coteEx={p.coteEx}
+                      onOpen={openCote}
+                    />
+                  ))
+                )}
+              </div>
+            )}
           </>
         )}
 
