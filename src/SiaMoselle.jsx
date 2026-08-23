@@ -1254,9 +1254,12 @@ const CSS = `
 .sia-article{background:var(--paper-dark);border:1px solid var(--line);border-left:3px solid var(--kraft);
   border-radius:2px;padding:.9rem 1rem .4rem;margin-bottom:.8rem;}
 .sia-article.elimine{border-left-color:var(--red);background:#f6e9e6;}
+.sia-article.tri{border-left-color:var(--kraft);background:#f2ece1;}
 .sia-badgeelim{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.08em;
   text-transform:uppercase;background:var(--red);color:#fff;padding:.15rem .45rem;
   border-radius:2px;margin-left:.4rem;}
+.sia-badgeelim.tri{background:var(--kraft);margin-left:0;}
+.sia-elimhead{margin-bottom:.3rem;}
 .sia-articlehead{display:flex;justify-content:space-between;align-items:baseline;
   gap:.6rem;margin-bottom:.6rem;}
 .sia-articlenum{font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.1em;
@@ -2086,8 +2089,20 @@ const MOTIFS_ELIMINATION = [
   { code: "vrac", label: "Document de gestion courante sans intérêt historique" },
 ];
 
+/* Le tri sélectif est le troisième sort possible d'un tableau de
+   gestion, à côté de la conservation intégrale et de l'élimination :
+   seule une partie de la série est conservée (échantillon, exemplaire
+   type, pièces à valeur probatoire), le reste est écarté. */
+const MOTIFS_TRI = [
+  { code: "echantillon", label: "Échantillonnage représentatif d'une série homogène" },
+  { code: "type", label: "Conservation d'un exemplaire type, élimination des doublons" },
+  { code: "probatoire", label: "Seules les pièces à valeur probatoire sont conservées" },
+  { code: "seuil", label: "Tri par seuil (montant, importance) prévu au tableau de gestion" },
+];
+
 const SORTS = [
-  { code: "conservation", label: "Conservation définitive" },
+  { code: "conservation", label: "Conservation intégrale" },
+  { code: "tri", label: "Tri sélectif" },
   { code: "elimination", label: "Élimination" },
 ];
 
@@ -2675,15 +2690,17 @@ export default function SiaMoselle() {
     return n ? n.nature : null;
   };
 
-  const conserves = notices.filter((n) => n.sort !== "elimination");
-  /* Un fonds privé ne se voit jamais proposer le sort "élimination" à
-     la collecte (voir enregistrerVersement) : cette liste ne contient
-     donc que des archives publiques. */
+  /* Un fonds privé ne se voit jamais proposer les sorts "tri" ou
+     "élimination" à la collecte (voir enregistrerVersement) : ces
+     deux listes ne contiennent donc que des archives publiques. */
+  const conserves = notices.filter((n) => n.sort === "conservation");
   const elimines = notices.filter((n) => n.sort === "elimination");
+  const atrier = notices.filter((n) => n.sort === "tri");
+  const ecartes = [...elimines, ...atrier];
   const mlRecu = notices
     .filter((n) => n.support === "physique")
     .reduce((t, n) => t + (n.mesure || 0), 0);
-  const mlElimine = elimines
+  const mlEcarte = ecartes
     .filter((n) => n.support === "physique")
     .reduce((t, n) => t + (n.mesure || 0), 0);
 
@@ -2696,6 +2713,21 @@ export default function SiaMoselle() {
   const majArticle = (i, champ, valeur) => {
     setFArticles((prev) =>
       prev.map((a, k) => (k === i ? { ...a, [champ]: valeur } : a))
+    );
+  };
+
+  /* Élimination et tri n'ont pas les mêmes motifs : changer de sort
+     réinitialise le motif sur le premier de la liste qui s'applique,
+     pour ne jamais laisser un code orphelin d'une autre liste. */
+  const majSort = (i, sort) => {
+    const justification =
+      sort === "elimination"
+        ? MOTIFS_ELIMINATION[0].code
+        : sort === "tri"
+        ? MOTIFS_TRI[0].code
+        : "";
+    setFArticles((prev) =>
+      prev.map((a, k) => (k === i ? { ...a, sort, justification } : a))
     );
   };
 
@@ -2766,12 +2798,13 @@ export default function SiaMoselle() {
 
     /* Un fonds privé n'est jamais éliminé par le service : il est
        restitué à la personne selon les termes de l'acte de don, de
-       dépôt ou d'achat. Le sort "élimination" n'existe donc que pour
-       les archives publiques — on le neutralise ici quelle que soit
-       la valeur saisie, par défense en profondeur en plus de
-       l'absence du sélecteur côté formulaire. */
+       dépôt ou d'achat. Les sorts "élimination" et "tri" n'existent
+       donc que pour les archives publiques — on les neutralise ici
+       quelle que soit la valeur saisie, par défense en profondeur en
+       plus de l'absence du sélecteur côté formulaire. */
     const ajouts = prets.map((a, i) => {
       const sort = fNature === "privee" ? "conservation" : a.sort;
+      const motifsSort = sort === "tri" ? MOTIFS_TRI : MOTIFS_ELIMINATION;
       return {
         id: `${versement}-${i}`,
         versement,
@@ -2792,13 +2825,12 @@ export default function SiaMoselle() {
         mesure: a.mesure,
         sort,
         justification:
-          sort === "elimination"
-            ? (MOTIFS_ELIMINATION.find((m) => m.code === a.justification) || MOTIFS_ELIMINATION[0])
-                .label
+          sort === "elimination" || sort === "tri"
+            ? (motifsSort.find((m) => m.code === a.justification) || motifsSort[0]).label
             : "",
         serie: "",
         loc:
-          sort === "elimination"
+          sort === "elimination" || sort === "tri"
             ? null
             : a.support === "numerique"
             ? {
@@ -2943,24 +2975,27 @@ export default function SiaMoselle() {
   /* Le bordereau d'élimination : même la destruction laisse une archive.
      Sans le visa du directeur, rien ne peut être détruit. */
   const editerBordereau = () => {
-    if (elimines.length === 0) return;
-    const producteurs = [...new Set(elimines.map((n) => n.producteur))];
+    if (ecartes.length === 0) return;
+    const producteurs = [...new Set(ecartes.map((n) => n.producteur))];
     const annee = new Date().getFullYear();
     const L = [];
     L.push("=".repeat(78));
     L.push("ARCHIVES DEPARTEMENTALES DE LA MOSELLE");
-    L.push("BORDEREAU D'ELIMINATION");
+    L.push("BORDEREAU D'ELIMINATION ET DE TRI");
     L.push("=".repeat(78));
     L.push("");
     L.push(`Service producteur : ${producteurs.join(" / ")}`);
     L.push(`Annee : ${annee}`);
-    L.push(`Nombre d'articles proposes a l'elimination : ${elimines.length}`);
+    L.push(`Nombre d'articles proposes : ${ecartes.length}`);
+    L.push(`  dont elimination : ${elimines.length} · dont tri selectif : ${atrier.length}`);
     L.push("");
     L.push("-".repeat(78));
-    L.push("N°  ANALYSE SOMMAIRE / DATES EXTREMES / METRAGE / JUSTIFICATION");
+    L.push("N°  OPERATION / ANALYSE SOMMAIRE / DATES EXTREMES / METRAGE / JUSTIFICATION");
     L.push("-".repeat(78));
-    elimines.forEach((n, i) => {
-      L.push(`${String(i + 1).padStart(3, " ")}  ${n.intitule}`);
+    ecartes.forEach((n, i) => {
+      L.push(
+        `${String(i + 1).padStart(3, " ")}  [${n.sort === "tri" ? "TRI SELECTIF" : "ELIMINATION"}] ${n.intitule}`
+      );
       L.push(`     Dates extremes : ${n.dates}`);
       L.push(
         `     Metrage : ${n.mesure} ${n.support === "numerique" ? "Go" : "ml"}`
@@ -2972,9 +3007,9 @@ export default function SiaMoselle() {
       L.push("");
     });
     L.push("-".repeat(78));
-    L.push(`TOTAL PROPOSE A L'ELIMINATION : ${mlElimine.toFixed(2)} ml`);
+    L.push(`TOTAL ECARTE (ELIMINATION + TRI) : ${mlEcarte.toFixed(2)} ml`);
     if (mlRecu > 0) {
-      const garde = mlRecu - mlElimine;
+      const garde = mlRecu - mlEcarte;
       const taux = Math.round((garde / mlRecu) * 100);
       L.push(
         `Sur ${mlRecu.toFixed(2)} ml recus, ${garde.toFixed(2)} ml conserves — ${taux} %.`
@@ -2982,7 +3017,7 @@ export default function SiaMoselle() {
     }
     L.push("-".repeat(78));
     L.push("");
-    L.push("Le service versant propose l'elimination des documents ci-dessus :");
+    L.push("Le service versant propose l'elimination ou le tri des documents ci-dessus :");
     L.push("");
     L.push("   Date :                    Nom et signature :");
     L.push("");
@@ -3095,36 +3130,45 @@ export default function SiaMoselle() {
     enregistrer(liste);
   };
 
-  const ligneElim = (n) => (
-    <div className={`sia-elimligne${n.visa === "accepte" ? " vise" : ""}`} key={n.id}>
-      <div className="sia-elimint">{n.intitule}</div>
-      <div className="sia-elimmeta">
-        {n.dates} · {n.mesure} {n.support === "numerique" ? "Go" : "ml"} · {n.producteur}
+  const ligneElim = (n) => {
+    const tri = n.sort === "tri";
+    return (
+      <div className={`sia-elimligne${n.visa === "accepte" ? " vise" : ""}`} key={n.id}>
+        <div className="sia-elimhead">
+          <span className={`sia-badgeelim${tri ? " tri" : ""}`}>
+            {tri ? "Tri sélectif" : "Élimination"}
+          </span>
+        </div>
+        <div className="sia-elimint">{n.intitule}</div>
+        <div className="sia-elimmeta">
+          {n.dates} · {n.mesure} {n.support === "numerique" ? "Go" : "ml"} · {n.producteur}
+        </div>
+        <div className="sia-elimjust">{n.justification}</div>
+        {n.visa === "accepte" ? (
+          <div className="sia-visa">
+            {tri
+              ? "Visa accordé — tri effectué, article non retenu. La ligne demeure au bordereau, qui est conservé définitivement."
+              : "Visa accordé — article détruit. La ligne demeure au bordereau, qui est conservé définitivement."}
+          </div>
+        ) : (
+          <div className="sia-elimactions">
+            <button className="sia-link sia-mini" onClick={() => accepterElimination(n.id)}>
+              {tri ? "Tri accepté" : "Élimination acceptée"}
+            </button>
+            <button className="sia-link sia-mini" onClick={() => refuserElimination(n.id)}>
+              {tri ? "Tri refusé" : "Élimination refusée"}
+            </button>
+          </div>
+        )}
+        <button
+          className="sia-link sia-mini sia-supprnotice"
+          onClick={() => supprimerNotice(n.id)}
+        >
+          Supprimer la notice
+        </button>
       </div>
-      <div className="sia-elimjust">{n.justification}</div>
-      {n.visa === "accepte" ? (
-        <div className="sia-visa">
-          Visa accordé — article détruit. La ligne demeure au bordereau, qui est conservé
-          définitivement.
-        </div>
-      ) : (
-        <div className="sia-elimactions">
-          <button className="sia-link sia-mini" onClick={() => accepterElimination(n.id)}>
-            Élimination acceptée
-          </button>
-          <button className="sia-link sia-mini" onClick={() => refuserElimination(n.id)}>
-            Élimination refusée
-          </button>
-        </div>
-      )}
-      <button
-        className="sia-link sia-mini sia-supprnotice"
-        onClick={() => supprimerNotice(n.id)}
-      >
-        Supprimer la notice
-      </button>
-    </div>
-  );
+    );
+  };
 
   /* L'instrument de recherche numérique : on part d'une question,
      pas d'une cote. C'est ce trajet que fait un lecteur en salle. */
@@ -3235,11 +3279,14 @@ export default function SiaMoselle() {
           versements: [],
           conserves: 0,
           elimines: 0,
+          tries: 0,
         });
       }
       const e = carte.get(nom);
       if (n.sort === "elimination") {
         e.elimines += 1;
+      } else if (n.sort === "tri") {
+        e.tries += 1;
       } else {
         e.conserves += 1;
         e.cotes.push(n.cote || "sans cote");
@@ -3352,7 +3399,7 @@ export default function SiaMoselle() {
             data-active={tab === "elimination"}
             onClick={() => allerA("elimination")}
           >
-            Éliminer{elimines.length > 0 ? ` (${elimines.length})` : ""}
+            Écarter{ecartes.length > 0 ? ` (${ecartes.length})` : ""}
           </button>
         </nav>
       </header>
@@ -3554,21 +3601,27 @@ export default function SiaMoselle() {
                             : "Non classé",
                         ],
                       ]}
-                      description={
-                        pa.conserves === 0
-                          ? `${pa.elimines} article${pa.elimines > 1 ? "s" : ""} proposé${
-                              pa.elimines > 1 ? "s" : ""
-                            } à l'élimination : aucun n'entre dans le fonds.`
-                          : `${pa.conserves} article${pa.conserves > 1 ? "s" : ""} conservé${
+                      description={(() => {
+                        const parts = [];
+                        if (pa.conserves > 0)
+                          parts.push(
+                            `${pa.conserves} article${pa.conserves > 1 ? "s" : ""} conservé${
                               pa.conserves > 1 ? "s" : ""
-                            }${
-                              pa.elimines > 0
-                                ? `, ${pa.elimines} proposé${
-                                    pa.elimines > 1 ? "s" : ""
-                                  } à l'élimination`
-                                : ""
-                            }. Cotes : ${pa.cotes.join(", ")}.`
-                      }
+                            }`
+                          );
+                        if (pa.elimines > 0)
+                          parts.push(
+                            `${pa.elimines} proposé${pa.elimines > 1 ? "s" : ""} à l'élimination`
+                          );
+                        if (pa.tries > 0)
+                          parts.push(
+                            `${pa.tries} proposé${pa.tries > 1 ? "s" : ""} au tri sélectif`
+                          );
+                        const resume = parts.join(", ");
+                        return pa.conserves > 0
+                          ? `${resume}. Cotes : ${pa.cotes.join(", ")}.`
+                          : `${resume} : aucun n'entre dans le fonds.`;
+                      })()}
                       coteEx={pa.cotes.find((c) => c !== "sans cote") || null}
                       onOpen={openCote}
                     />
@@ -3718,11 +3771,19 @@ export default function SiaMoselle() {
               </div>
 
               {fArticles.map((a, i) => (
-                <div className={`sia-article${a.sort === "elimination" ? " elimine" : ""}`} key={i}>
+                <div
+                  className={`sia-article${
+                    a.sort === "elimination" ? " elimine" : a.sort === "tri" ? " tri" : ""
+                  }`}
+                  key={i}
+                >
                   <div className="sia-articlehead">
                     <span className="sia-articlenum">Article {i + 1}</span>
                     {a.sort === "elimination" && (
                       <span className="sia-badgeelim">à éliminer</span>
+                    )}
+                    {a.sort === "tri" && (
+                      <span className="sia-badgeelim tri">à trier</span>
                     )}
                     {fArticles.length > 1 && (
                       <button
@@ -3813,7 +3874,7 @@ export default function SiaMoselle() {
                           id={`a-sort-${i}`}
                           className="sia-select"
                           value={a.sort}
-                          onChange={(e) => majArticle(i, "sort", e.target.value)}
+                          onChange={(e) => majSort(i, e.target.value)}
                         >
                           {SORTS.map((so) => (
                             <option key={so.code} value={so.code}>
@@ -3822,8 +3883,9 @@ export default function SiaMoselle() {
                           ))}
                         </select>
                         <div className="sia-aide">
-                          Tout n'est pas conservé : après sa durée d'utilité administrative, un
-                          document est détruit, trié, ou versé définitivement.
+                          Tout n'est pas conservé, et tout n'est pas conservé en entier : après sa
+                          durée d'utilité administrative, un document est détruit (élimination),
+                          partiellement retenu (tri sélectif), ou versé définitivement.
                         </div>
                       </div>
 
@@ -3846,6 +3908,28 @@ export default function SiaMoselle() {
                             Les motifs d'élimination forment une liste fixée par les tableaux de
                             gestion : ce n'est pas une appréciation personnelle. Le service
                             versant propose, le directeur des Archives vise.
+                          </div>
+                        </div>
+                      )}
+
+                      {a.sort === "tri" && (
+                        <div className="sia-champ">
+                          <label htmlFor={`a-just-${i}`}>Motif du tri</label>
+                          <select
+                            id={`a-just-${i}`}
+                            className="sia-select"
+                            value={a.justification}
+                            onChange={(e) => majArticle(i, "justification", e.target.value)}
+                          >
+                            {MOTIFS_TRI.map((m) => (
+                              <option key={m.code} value={m.code}>
+                                {m.label}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="sia-aide">
+                            Le tri sélectif ne retient qu'une partie d'une série homogène : cet
+                            article-ci est celui écarté par le tri, pas l'échantillon conservé.
                           </div>
                         </div>
                       )}
@@ -3903,11 +3987,15 @@ export default function SiaMoselle() {
               </div>
             </div>
 
-            {elimines.length > 0 && (
+            {ecartes.length > 0 && (
               <div className="sia-rappelelim">
                 <span>
-                  {elimines.length} article{elimines.length > 1 ? "s" : ""} proposé
-                  {elimines.length > 1 ? "s" : ""} à l'élimination.
+                  {elimines.length > 0 &&
+                    `${elimines.length} article${elimines.length > 1 ? "s" : ""} proposé${elimines.length > 1 ? "s" : ""} à l'élimination`}
+                  {elimines.length > 0 && atrier.length > 0 && " · "}
+                  {atrier.length > 0 &&
+                    `${atrier.length} article${atrier.length > 1 ? "s" : ""} proposé${atrier.length > 1 ? "s" : ""} au tri sélectif`}
+                  .
                 </span>
                 <button className="sia-inline" onClick={() => allerA("elimination")}>
                   Voir le bordereau
@@ -3990,8 +4078,8 @@ export default function SiaMoselle() {
             {conserves.length === 0 ? (
               <div className="sia-vide">
                 Aucun article à classer.{" "}
-                {elimines.length > 0
-                  ? "Les articles collectés sont tous voués à l'élimination : ils n'entrent pas dans le fonds."
+                {ecartes.length > 0
+                  ? "Les articles collectés sont tous voués à l'élimination ou au tri sélectif : ils n'entrent pas dans le fonds."
                   : "Commencez par en collecter dans l'onglet Collecter."}
               </div>
             ) : (
@@ -4273,8 +4361,8 @@ export default function SiaMoselle() {
             {conserves.length === 0 ? (
               <div className="sia-vide">
                 Aucun article à conserver.{" "}
-                {elimines.length > 0
-                  ? "Les articles collectés sont tous voués à l'élimination."
+                {ecartes.length > 0
+                  ? "Les articles collectés sont tous voués à l'élimination ou au tri sélectif."
                   : "Commencez par en collecter dans l'onglet Collecter."}
               </div>
             ) : (
@@ -4440,26 +4528,28 @@ export default function SiaMoselle() {
         {tab === "elimination" && (
           <>
             <div className="sia-intro">
-              <div className="sia-eyebrow">Module d'élimination</div>
+              <div className="sia-eyebrow">Module d'élimination et de tri</div>
               <h1>Ce qui n'entre pas dans le fonds</h1>
               <p>
-                Tout n'est pas conservé. Les articles écartés à la collecte figurent au bordereau
-                d'élimination, qui doit être visé avant toute destruction. Cela ne concerne que
-                les archives publiques : un fonds privé n'est jamais éliminé par le service, il
-                est restitué à la personne selon les clauses de l'acte qui l'a fait entrer.
+                Tout n'est pas conservé, et tout n'est pas conservé en entier : un article peut
+                être détruit (élimination) ou partiellement retenu selon des critères fixés au
+                tableau de gestion (tri sélectif). Les deux figurent au bordereau, qui doit être
+                visé avant toute destruction. Cela ne concerne que les archives publiques : un
+                fonds privé n'est jamais éliminé par le service, il est restitué à la personne
+                selon les clauses de l'acte qui l'a fait entrer.
               </p>
             </div>
 
-            {elimines.length === 0 ? (
+            {ecartes.length === 0 ? (
               <div className="sia-vide">
-                Aucun article proposé à l'élimination. Le sort final se choisit à la collecte,
-                sur chaque article d'un fonds public du versement.
+                Aucun article proposé à l'élimination ou au tri sélectif. Le sort final se
+                choisit à la collecte, sur chaque article d'un fonds public du versement.
               </div>
             ) : (
               <div className="sia-bordereau">
                 <div className="sia-bordhead">
                   <div className="sia-eyebrow" style={{ textAlign: "left", margin: 0 }}>
-                    Bordereau d'élimination ({elimines.length})
+                    Bordereau d'élimination et de tri ({ecartes.length})
                   </div>
                   <button className="sia-link sia-mini" onClick={editerBordereau}>
                     Éditer le bordereau
@@ -4469,16 +4559,16 @@ export default function SiaMoselle() {
                 {mlRecu > 0 && (
                   <div className="sia-ratio">
                     <span className="sia-ratiochiffre">
-                      {Math.round(((mlRecu - mlElimine) / mlRecu) * 100)} %
+                      {Math.round(((mlRecu - mlEcarte) / mlRecu) * 100)} %
                     </span>
                     <span>
-                      conservés — {(mlRecu - mlElimine).toFixed(2)} ml sur {mlRecu.toFixed(2)} ml
-                      reçus. Le reste est proposé à l'élimination.
+                      conservés — {(mlRecu - mlEcarte).toFixed(2)} ml sur {mlRecu.toFixed(2)} ml
+                      reçus. Le reste est écarté par élimination ou tri sélectif.
                     </span>
                   </div>
                 )}
 
-                {elimines.map((n) => ligneElim(n))}
+                {ecartes.map((n) => ligneElim(n))}
 
                 <div className="sia-elimnote">
                   Ces articles n'entrent pas dans le fonds : ni cote, ni série, ni emplacement.
