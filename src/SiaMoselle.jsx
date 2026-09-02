@@ -3399,7 +3399,7 @@ export default function SiaMoselle() {
             data-active={tab === "elimination"}
             onClick={() => allerA("elimination")}
           >
-            Écarter{ecartes.length > 0 ? ` (${ecartes.length})` : ""}
+            Éliminer{ecartes.length > 0 ? ` (${ecartes.length})` : ""}
           </button>
         </nav>
       </header>
