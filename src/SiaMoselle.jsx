@@ -627,6 +627,25 @@ const FONDS = {
     comm: "libre",
     loc: { site: "CAITM — Saint-Avold", magasin: "B", epi: 48, travee: 6, tablette: 1, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
   },
+  "215 MTM": {
+    serie: "Série MTM — Manufacture des tabacs de Metz (fonds d'entreprise publique)",
+    intitule: "Direction de la manufacture — production et gestion du personnel",
+    dates: "1868–1980",
+    producteur: "Manufacture des tabacs de Metz",
+    metrage: "1,50 ml",
+    comm: "differee",
+    commDetail: "Non communicable — 50 ans pour les dossiers de personnel (vie privée)",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "A", epi: 12, travee: 5, tablette: 3, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "2890 CAITM": {
+    serie: "Fonds industriels et techniques — Centre des Archives Industrielles et Techniques de la Moselle",
+    intitule: "Cristallerie d'Hartzviller — dossiers de fabrication et modèles",
+    dates: "1875–1990",
+    producteur: "Cristallerie d'Hartzviller",
+    metrage: "0,90 ml",
+    comm: "libre",
+    loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 95, travee: 3, tablette: 4, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
 };
 
 const INSTRUMENTS = [
@@ -642,6 +661,8 @@ const INSTRUMENTS = [
   { type: "Répertoire numérique", titre: "Association de mémoire du bassin houiller", niveau: "Fonds privé (690 J)", dates: "1963–2010", cotesExtremes: "690 J 1 – 690 J 85", redacteur: "Service des archives, 2015", format: "XML-EAD", coteEx: "690 J" },
   { type: "Répertoire numérique", titre: "Chambre de commerce et d'industrie de la Moselle", niveau: "Série ETP (152 ETP)", dates: "1920–1985", cotesExtremes: "152 ETP 1 – 152 ETP 340", redacteur: "Service des archives, 2011", format: "PDF", coteEx: "152 ETP" },
   { type: "Répertoire — archives industrielles", titre: "Sidérurgie mosellane — dossiers techniques et plans", niveau: "Fonds CAITM", dates: "1900–1990", cotesExtremes: "2600 CAITM – 2700 CAITM", redacteur: "CAITM, 2018", format: "XML-EAD", coteEx: "2654 CAITM" },
+  { type: "Répertoire numérique", titre: "Manufacture des tabacs de Metz — production et personnel", niveau: "Série MTM", dates: "1868–1980", cotesExtremes: "1 MTM – 320 MTM", redacteur: "Service des archives, 2013", format: "XML-EAD", coteEx: "215 MTM" },
+  { type: "Répertoire — archives industrielles", titre: "Cristallerie d'Hartzviller — dossiers de fabrication", niveau: "Fonds CAITM", dates: "1875–1990", cotesExtremes: "2850 CAITM – 2950 CAITM", redacteur: "CAITM, 2019", format: "XML-EAD", coteEx: "2890 CAITM" },
 ];
 
 /* ------------------------------------------------------------
@@ -935,6 +956,26 @@ const PRODUCTEURS = [
     fondsAssocies: "Série Fi (documents figurés)",
     nature: "publique",
     coteEx: "4 FI 12",
+  },
+  {
+    type: "Entreprise publique (manufacture d'État)",
+    nom: "Manufacture des tabacs de Metz",
+    dates: "1868 – 1980",
+    description:
+      "Manufacture d'État rattachée à la Régie des tabacs puis à la SEITA, l'une des grandes implantations industrielles de Metz. Établissement public à caractère industriel et commercial : ses archives entrent par versement, comme celles de toute administration.",
+    fondsAssocies: "Série MTM",
+    nature: "publique",
+    coteEx: "215 MTM",
+  },
+  {
+    type: "Entreprise verrière",
+    nom: "Cristallerie d'Hartzviller",
+    dates: "1875 – aujourd'hui",
+    description:
+      "Verrerie puis cristallerie d'art fondée à Hartzviller, en Moselle, toujours en activité. Producteur privé : les dossiers de fabrication et modèles conservés aux Archives départementales sont entrés par dépôt et ne couvrent qu'une partie de son histoire — l'entreprise garde ses archives courantes.",
+    fondsAssocies: "Fonds CAITM",
+    nature: "privee",
+    coteEx: "2890 CAITM",
   },
 ];
 
