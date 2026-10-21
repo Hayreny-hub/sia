@@ -1763,8 +1763,12 @@ function dessinerDocument(cote, data) {
 
 function ClasseurModal({ cote, data, onClose }) {
   // seul un article numérisé se consulte à l'écran ; un article
-  // physique s'arrête à la chemise, il se lit en salle de lecture
+  // physique communicable s'arrête à la chemise, il se lit en salle
+  // de lecture. Mais un article non communicable doit toujours
+  // s'ouvrir sur le cadenas et le refus, qu'il soit physique ou non —
+  // sinon le refus reste invisible, caché derrière la couverture.
   const numerique = data.support === "numerique" || (data.loc && data.loc.sae);
+  const ouvrable = numerique || data.comm !== "libre";
   const jointe =
     IMAGES_PAR_COTE[cleCote(cote)] ||
     Object.entries(IMAGES_PAR_COTE).find(([c]) => cleCote(c) === cleCote(cote))?.[1] ||
@@ -1806,14 +1810,14 @@ function ClasseurModal({ cote, data, onClose }) {
       <div className={`sia-classeur${ouvert ? " ouvert" : ""}`}>
         <button
           className="sia-couv"
-          onClick={() => numerique && setOuvert(true)}
+          onClick={() => ouvrable && setOuvert(true)}
           aria-label={
-            numerique
+            ouvrable
               ? `Ouvrir le classeur ${cote}`
               : `Chemise ${cote} — consultation en salle de lecture`
           }
-          tabIndex={ouvert || !numerique ? -1 : 0}
-          style={numerique ? undefined : { cursor: "default" }}
+          tabIndex={ouvert || !ouvrable ? -1 : 0}
+          style={ouvrable ? undefined : { cursor: "default" }}
         >
           <div className="sia-couvsangle" aria-hidden="true" />
           <div className="sia-couvmention">Archives départementales de la Moselle</div>
@@ -1821,7 +1825,7 @@ function ClasseurModal({ cote, data, onClose }) {
           <div className="sia-couvintitule">{data.intitule}</div>
           <div className="sia-couvmention">{data.loc.site}</div>
           <div className="sia-couvinvite">
-            {numerique ? "Cliquez pour ouvrir" : "Consultation en salle de lecture"}
+            {ouvrable ? "Cliquez pour ouvrir" : "Consultation en salle de lecture"}
           </div>
         </button>
 
