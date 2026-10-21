@@ -3267,14 +3267,6 @@ export default function SiaMoselle() {
     enregistrer(liste);
   };
 
-  /* Les fautes de saisie se corrigent tant que l'article n'a pas été
-     validé : coté (pour un article conservé) ou visé (pour une
-     élimination ou un tri). Une fois l'un ou l'autre franchi, la
-     correction silencieuse romprait la valeur d'engagement de la
-     cote ou du visa — il faudrait alors une procédure, pas ce
-     formulaire. */
-  const modifiable = (n) => !n.cote && n.visa !== "accepte";
-
   const commencerModif = (n) => {
     setEditId(n.id);
     setEditErreur("");
@@ -3346,6 +3338,7 @@ export default function SiaMoselle() {
       return;
     }
     const sort = d.nature === "privee" ? "conservation" : d.sort;
+    const ecarte = sort === "elimination" || sort === "tri";
     const motifsSort = sort === "tri" ? MOTIFS_TRI : MOTIFS_ELIMINATION;
     const liste = notices.map((n) =>
       n.id === editId
@@ -3366,11 +3359,17 @@ export default function SiaMoselle() {
             support: d.support,
             mesure,
             sort,
-            justification:
-              sort === "elimination" || sort === "tri"
-                ? (motifsSort.find((m) => m.code === d.justification) || motifsSort[0]).label
-                : "",
-            loc: sort === "elimination" || sort === "tri" ? null : n.loc,
+            justification: ecarte
+              ? (motifsSort.find((m) => m.code === d.justification) || motifsSort[0]).label
+              : "",
+            /* Un article qui change de camp au fil d'une correction ne
+               garde pas les traces de l'autre circuit : une cote et un
+               classement n'ont pas de sens pour un article écarté, un
+               visa n'en a pas pour un article conservé. */
+            loc: ecarte ? null : n.loc,
+            serie: ecarte ? "" : n.serie,
+            cote: ecarte ? null : n.cote,
+            visa: ecarte ? n.visa : null,
           }
         : n
     );
@@ -3592,7 +3591,7 @@ export default function SiaMoselle() {
             </button>
           </div>
         )}
-        {modifiable(n) && editId !== n.id && (
+        {editId !== n.id && (
           <button className="sia-link sia-mini" onClick={() => commencerModif(n)}>
             Modifier la saisie
           </button>
@@ -4594,7 +4593,7 @@ export default function SiaMoselle() {
                             Étape 4 · Communiquer
                           </button>
                         )}
-                        {modifiable(n) && editId !== n.id && (
+                        {editId !== n.id && (
                           <button className="sia-link sia-mini" onClick={() => commencerModif(n)}>
                             Modifier la saisie
                           </button>
