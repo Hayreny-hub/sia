@@ -1041,6 +1041,8 @@ const CSS = `
 .sia-input{flex:1;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:1.05rem;letter-spacing:.03em;
   padding:.7rem .9rem;border:1.5px solid var(--kraft);border-radius:2px;background:#fffdf7;color:var(--ink);text-transform:uppercase;}
 .sia-input:focus-visible{outline:2px solid var(--red);outline-offset:1px;}
+/* Un nom de lecteur n'est pas une cote : on garde sa casse normale. */
+.sia-input.sia-nomlecteur{text-transform:none;letter-spacing:normal;}
 .sia-btn{flex-shrink:0;font-weight:600;font-size:.88rem;background:var(--green);color:#fff;border:none;
   padding:0 1.3rem;border-radius:2px;cursor:pointer;}
 .sia-btn:hover{background:var(--green-dark);}
@@ -3556,7 +3558,7 @@ export default function SiaMoselle() {
                   </label>
                   <input
                     id="lecteur"
-                    className="sia-input"
+                    className="sia-input sia-nomlecteur"
                     value={lecteurNom}
                     placeholder="Nom du lecteur"
                     autoComplete="off"
