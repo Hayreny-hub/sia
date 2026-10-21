@@ -2024,36 +2024,22 @@ async function sauverRegistre(liste) {
    départementales, proposées au classement des articles
    ============================================================ */
 
+/* Cadre de classement réduit pour l'atelier : sur 45 minutes, le
+   choix complet (une vingtaine de lettres) perd les élèves plus
+   qu'il ne les guide. Seules les trois séries les plus parlantes
+   pour un versement imaginé en atelier restent proposées ; les
+   autres (administration communale, justice, clergé...) se
+   racontent à l'oral si le besoin s'en fait sentir. Le référentiel
+   des fonds déjà chargés (FONDS, INSTRUMENTS) n'en dépend pas : leurs
+   séries sont du texte fixe, affiché tel quel, pas recalculé à
+   partir de ce cadre. */
 const CADRE = [
-  { groupe: "Archives anciennes (avant 1790)", debut: null, fin: 1790, series: [
-    { code: "B", label: "Cours et juridictions" },
-    { code: "C", label: "Administrations provinciales" },
-    { code: "G", label: "Clergé séculier" },
-    { code: "H", label: "Clergé régulier" },
-  ]},
-  { groupe: "Archives modernes (1800–1940)", debut: 1790, fin: 1940, series: [
-    { code: "M", label: "Administration générale et économie" },
-    { code: "N", label: "Administration départementale" },
-    { code: "O", label: "Administration communale" },
-    { code: "P", label: "Finances, cadastre, postes" },
-    { code: "Q", label: "Domaines, enregistrement, hypothèques" },
-    { code: "R", label: "Affaires militaires" },
-    { code: "T", label: "Enseignement, culture, sports" },
-    { code: "U", label: "Justice" },
-    { code: "X", label: "Assistance et prévoyance sociale" },
-    { code: "Y", label: "Établissements pénitentiaires" },
-    { code: "Z", label: "Sous-préfectures" },
-  ]},
   { groupe: "Archives contemporaines (après 1940)", debut: 1940, fin: null, series: [
     { code: "W", label: "Versements des administrations" },
   ]},
   { groupe: "Séries transverses", debut: null, fin: null, series: [
     { code: "J", label: "Entrées par voie extraordinaire (fonds privés)" },
     { code: "Fi", label: "Documents figurés" },
-    { code: "E DEPOT", label: "Archives communales déposées" },
-    { code: "ETP", label: "Organismes à personnalité juridique" },
-    { code: "HBL", label: "Houillères du Bassin de Lorraine", debut: 1946, fin: 2004 },
-    { code: "CAITM", label: "Archives industrielles et techniques" },
   ]},
 ];
 
