@@ -2094,6 +2094,7 @@ function ligneVide() {
     motif: "privee",
     sort: "conservation",
     justification: "dua",
+    echantillon: "",
   };
 }
 
@@ -2848,7 +2849,9 @@ export default function SiaMoselle() {
         ? MOTIFS_TRI[0].code
         : "";
     setFArticles((prev) =>
-      prev.map((a, k) => (k === i ? { ...a, sort, justification } : a))
+      prev.map((a, k) =>
+        k === i ? { ...a, sort, justification, echantillon: sort === "tri" ? a.echantillon : "" } : a
+      )
     );
   };
 
@@ -2860,7 +2863,7 @@ export default function SiaMoselle() {
     setFNature(val);
     if (val === "privee") {
       setFArticles((prev) =>
-        prev.map((a) => ({ ...a, sort: "conservation", justification: "dua" }))
+        prev.map((a) => ({ ...a, sort: "conservation", justification: "dua", echantillon: "" }))
       );
     }
   };
@@ -2909,7 +2912,15 @@ export default function SiaMoselle() {
         );
         return;
       }
-      prets.push({ ...a, mesure });
+      let echantillon = null;
+      if (a.sort === "tri" && String(a.echantillon).trim()) {
+        echantillon = parseFloat(String(a.echantillon).replace(",", "."));
+        if (isNaN(echantillon) || echantillon < 0) {
+          setFErreur(`Article ${a.rang} : l'échantillon conservé doit être un nombre positif.`);
+          return;
+        }
+      }
+      prets.push({ ...a, mesure, echantillon });
     }
 
     const versement = `v${Date.now().toString(36)}`;
@@ -2949,6 +2960,7 @@ export default function SiaMoselle() {
           sort === "elimination" || sort === "tri"
             ? (motifsSort.find((m) => m.code === a.justification) || motifsSort[0]).label
             : "",
+        echantillon: sort === "tri" ? a.echantillon : null,
         serie: "",
         loc:
           sort === "elimination" || sort === "tri"
@@ -3273,6 +3285,7 @@ export default function SiaMoselle() {
           : n.sort === "tri"
           ? (MOTIFS_TRI.find((m) => m.label === n.justification) || MOTIFS_TRI[0]).code
           : "",
+      echantillon: n.echantillon != null ? String(n.echantillon) : "",
     });
   };
 
@@ -3296,6 +3309,7 @@ export default function SiaMoselle() {
             : valeur === "tri"
             ? MOTIFS_TRI[0].code
             : "";
+        if (valeur !== "tri") next.echantillon = "";
       }
       return next;
     });
@@ -3320,6 +3334,14 @@ export default function SiaMoselle() {
           : "Indiquez le volume des données, en Go."
       );
       return;
+    }
+    let echantillon = null;
+    if (d.sort === "tri" && String(d.echantillon).trim()) {
+      echantillon = parseFloat(String(d.echantillon).replace(",", "."));
+      if (isNaN(echantillon) || echantillon < 0) {
+        setEditErreur("L'échantillon conservé doit être un nombre positif.");
+        return;
+      }
     }
     const sort = d.nature === "privee" ? "conservation" : d.sort;
     const ecarte = sort === "elimination" || sort === "tri";
@@ -3346,6 +3368,7 @@ export default function SiaMoselle() {
             justification: ecarte
               ? (motifsSort.find((m) => m.code === d.justification) || motifsSort[0]).label
               : "",
+            echantillon: sort === "tri" ? echantillon : null,
             /* Un article qui change de camp au fil d'une correction ne
                garde pas les traces de l'autre circuit : une cote et un
                classement n'ont pas de sens pour un article écarté, un
@@ -3534,6 +3557,26 @@ export default function SiaMoselle() {
         </div>
       </div>
 
+      {editDraft.sort === "tri" && (
+        <div className="sia-champ">
+          <label htmlFor="e-ech">
+            Dont échantillon conservé ({editDraft.support === "physique" ? "ml" : "Go"})
+          </label>
+          <input
+            id="e-ech"
+            className="mono"
+            inputMode="decimal"
+            value={editDraft.echantillon}
+            autoComplete="off"
+            onChange={(e) => majEditChamp("echantillon", e.target.value)}
+          />
+          <div className="sia-aide">
+            Information indicative, pour garder trace de ce qui a été retenu : elle n'ouvre pas
+            d'article à part, et ne donne donc pas droit à une cote.
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: ".5rem", marginTop: ".4rem" }}>
         <button className="sia-btn" onClick={validerModif}>
           Enregistrer la modification
@@ -3558,6 +3601,12 @@ export default function SiaMoselle() {
         <div className="sia-elimmeta">
           {n.dates} · {n.mesure} {n.support === "numerique" ? "Go" : "ml"} · {n.producteur}
         </div>
+        {tri && n.echantillon != null && (
+          <div className="sia-elimmeta">
+            Dont {n.echantillon} {n.support === "numerique" ? "Go" : "ml"} conservé en échantillon
+            (indicatif — n'ouvre pas d'article classé).
+          </div>
+        )}
         <div className="sia-elimjust">{n.justification}</div>
         {n.visa === "accepte" ? (
           <div className="sia-visa">
@@ -4451,8 +4500,9 @@ export default function SiaMoselle() {
                             ))}
                           </select>
                           <div className="sia-aide">
-                            Le tri sélectif ne retient qu'une partie d'une série homogène : cet
-                            article-ci est celui écarté par le tri, pas l'échantillon conservé.
+                            Le tri sélectif ne retient qu'une partie d'une série homogène : le
+                            métrage renseigné plus bas est celui qui est écarté, pas l'échantillon
+                            conservé. Pour noter la part gardée, utilisez le champ dédié ci-dessous.
                           </div>
                         </div>
                       )}
@@ -4493,6 +4543,27 @@ export default function SiaMoselle() {
                       />
                     </div>
                   </div>
+
+                  {a.sort === "tri" && (
+                    <div className="sia-champ">
+                      <label htmlFor={`a-ech-${i}`}>
+                        Dont échantillon conservé ({a.support === "physique" ? "ml" : "Go"})
+                      </label>
+                      <input
+                        id={`a-ech-${i}`}
+                        className="mono"
+                        inputMode="decimal"
+                        value={a.echantillon}
+                        placeholder={a.support === "physique" ? "Ex. 0,10" : "Ex. 1,5"}
+                        autoComplete="off"
+                        onChange={(e) => majArticle(i, "echantillon", e.target.value)}
+                      />
+                      <div className="sia-aide">
+                        Information indicative, pour garder trace de ce qui a été retenu : elle
+                        n'ouvre pas d'article à part, et ne donne donc pas droit à une cote.
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
 
