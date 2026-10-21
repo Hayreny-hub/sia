@@ -2681,6 +2681,9 @@ export default function SiaMoselle() {
   const [fNouveauProd, setFNouveauProd] = useState("");
   const [fNature, setFNature] = useState("publique");
   const [fArticles, setFArticles] = useState([ligneVide()]);
+  const [editId, setEditId] = useState(null);
+  const [editDraft, setEditDraft] = useState(null);
+  const [editErreur, setEditErreur] = useState("");
   const [mots, setMots] = useState("");
   const [coCible, setCoCible] = useState(null);
   const [coSaisie, setCoSaisie] = useState("");
@@ -3264,6 +3267,301 @@ export default function SiaMoselle() {
     enregistrer(liste);
   };
 
+  /* Les fautes de saisie se corrigent tant que l'article n'a pas été
+     validé : coté (pour un article conservé) ou visé (pour une
+     élimination ou un tri). Une fois l'un ou l'autre franchi, la
+     correction silencieuse romprait la valeur d'engagement de la
+     cote ou du visa — il faudrait alors une procédure, pas ce
+     formulaire. */
+  const modifiable = (n) => !n.cote && n.visa !== "accepte";
+
+  const commencerModif = (n) => {
+    setEditId(n.id);
+    setEditErreur("");
+    setEditDraft({
+      intitule: n.intitule,
+      dates: n.dates,
+      producteur: n.producteur,
+      nature: n.nature,
+      comm: n.comm,
+      motif:
+        (MOTIFS_COMMUNICABILITE.find((m) => m.label === n.motif) || MOTIFS_COMMUNICABILITE[1])
+          .code,
+      support: n.support,
+      mesure: String(n.mesure),
+      sort: n.sort,
+      justification:
+        n.sort === "elimination"
+          ? (MOTIFS_ELIMINATION.find((m) => m.label === n.justification) || MOTIFS_ELIMINATION[0])
+              .code
+          : n.sort === "tri"
+          ? (MOTIFS_TRI.find((m) => m.label === n.justification) || MOTIFS_TRI[0]).code
+          : "",
+    });
+  };
+
+  const annulerModif = () => {
+    setEditId(null);
+    setEditDraft(null);
+    setEditErreur("");
+  };
+
+  const majEditChamp = (champ, valeur) => {
+    setEditDraft((prev) => {
+      const next = { ...prev, [champ]: valeur };
+      if (champ === "nature" && valeur === "privee") {
+        next.sort = "conservation";
+        next.justification = "";
+      }
+      if (champ === "sort") {
+        next.justification =
+          valeur === "elimination"
+            ? MOTIFS_ELIMINATION[0].code
+            : valeur === "tri"
+            ? MOTIFS_TRI[0].code
+            : "";
+      }
+      return next;
+    });
+  };
+
+  const validerModif = () => {
+    const d = editDraft;
+    if (!d.intitule.trim() || !d.dates.trim()) {
+      setEditErreur("Renseignez l'intitulé et les dates extrêmes.");
+      return;
+    }
+    const producteur = d.producteur.trim();
+    if (!producteur) {
+      setEditErreur("Indiquez le producteur.");
+      return;
+    }
+    const mesure = parseFloat(String(d.mesure).replace(",", "."));
+    if (!String(d.mesure).trim() || isNaN(mesure) || mesure <= 0) {
+      setEditErreur(
+        d.support === "physique"
+          ? "Indiquez le métrage linéaire, en mètres."
+          : "Indiquez le volume des données, en Go."
+      );
+      return;
+    }
+    const sort = d.nature === "privee" ? "conservation" : d.sort;
+    const motifsSort = sort === "tri" ? MOTIFS_TRI : MOTIFS_ELIMINATION;
+    const liste = notices.map((n) =>
+      n.id === editId
+        ? {
+            ...n,
+            intitule: d.intitule.trim(),
+            dates: d.dates.trim(),
+            producteur,
+            nature: d.nature,
+            comm: d.comm,
+            motif:
+              d.comm === "libre"
+                ? ""
+                : (
+                    MOTIFS_COMMUNICABILITE.find((m) => m.code === d.motif) ||
+                    MOTIFS_COMMUNICABILITE[1]
+                  ).label,
+            support: d.support,
+            mesure,
+            sort,
+            justification:
+              sort === "elimination" || sort === "tri"
+                ? (motifsSort.find((m) => m.code === d.justification) || motifsSort[0]).label
+                : "",
+            loc: sort === "elimination" || sort === "tri" ? null : n.loc,
+          }
+        : n
+    );
+    enregistrer(liste);
+    setEditId(null);
+    setEditDraft(null);
+    setEditErreur("");
+  };
+
+  const renderModif = () => (
+    <div className="sia-article" style={{ marginTop: ".6rem" }}>
+      {editErreur && <div className="sia-erreur">{editErreur}</div>}
+
+      <div className="sia-champ">
+        <label htmlFor="e-prod">Producteur</label>
+        <input
+          id="e-prod"
+          value={editDraft.producteur}
+          autoComplete="off"
+          onChange={(e) => majEditChamp("producteur", e.target.value)}
+        />
+      </div>
+
+      <div className="sia-champ">
+        <label htmlFor="e-nature">Nature du fonds</label>
+        <select
+          id="e-nature"
+          className="sia-select"
+          value={editDraft.nature}
+          onChange={(e) => majEditChamp("nature", e.target.value)}
+        >
+          <option value="publique">Archives publiques</option>
+          <option value="privee">Archives privées</option>
+        </select>
+      </div>
+
+      <div className="sia-champ">
+        <label htmlFor="e-int">Intitulé</label>
+        <input
+          id="e-int"
+          value={editDraft.intitule}
+          autoComplete="off"
+          onChange={(e) => majEditChamp("intitule", e.target.value)}
+        />
+      </div>
+
+      <div className="sia-loc2">
+        <div className="sia-champ">
+          <label htmlFor="e-dat">Dates extrêmes</label>
+          <input
+            id="e-dat"
+            className="mono"
+            value={editDraft.dates}
+            autoComplete="off"
+            onChange={(e) => majEditChamp("dates", e.target.value)}
+          />
+        </div>
+        <div className="sia-champ">
+          <label htmlFor="e-comm">Communicabilité</label>
+          <select
+            id="e-comm"
+            className="sia-select"
+            value={editDraft.comm}
+            onChange={(e) => majEditChamp("comm", e.target.value)}
+          >
+            <option value="libre">Communicable</option>
+            <option value="differee">Non communicable</option>
+          </select>
+        </div>
+      </div>
+
+      {editDraft.comm !== "libre" && (
+        <div className="sia-champ">
+          <label htmlFor="e-mot">Motif du délai</label>
+          <select
+            id="e-mot"
+            className="sia-select"
+            value={editDraft.motif}
+            onChange={(e) => majEditChamp("motif", e.target.value)}
+          >
+            {MOTIFS_COMMUNICABILITE.map((m) => (
+              <option key={m.code} value={m.code}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {editDraft.nature === "privee" ? (
+        <div className="sia-controle info">
+          <span className="sia-ctrlpicto" aria-hidden="true">
+            i
+          </span>
+          <span>Pas de sort final pour un fonds privé : conservation intégrale.</span>
+        </div>
+      ) : (
+        <>
+          <div className="sia-champ">
+            <label htmlFor="e-sort">Sort final</label>
+            <select
+              id="e-sort"
+              className="sia-select"
+              value={editDraft.sort}
+              onChange={(e) => majEditChamp("sort", e.target.value)}
+            >
+              {SORTS.map((so) => (
+                <option key={so.code} value={so.code}>
+                  {so.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {editDraft.sort === "elimination" && (
+            <div className="sia-champ">
+              <label htmlFor="e-just">Motif de l'élimination</label>
+              <select
+                id="e-just"
+                className="sia-select"
+                value={editDraft.justification}
+                onChange={(e) => majEditChamp("justification", e.target.value)}
+              >
+                {MOTIFS_ELIMINATION.map((m) => (
+                  <option key={m.code} value={m.code}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {editDraft.sort === "tri" && (
+            <div className="sia-champ">
+              <label htmlFor="e-just">Motif du tri</label>
+              <select
+                id="e-just"
+                className="sia-select"
+                value={editDraft.justification}
+                onChange={(e) => majEditChamp("justification", e.target.value)}
+              >
+                {MOTIFS_TRI.map((m) => (
+                  <option key={m.code} value={m.code}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="sia-loc2">
+        <div className="sia-champ">
+          <label htmlFor="e-sup">Support</label>
+          <select
+            id="e-sup"
+            className="sia-select"
+            value={editDraft.support}
+            onChange={(e) => majEditChamp("support", e.target.value)}
+          >
+            <option value="physique">Archives physiques</option>
+            <option value="numerique">Archives numériques</option>
+          </select>
+        </div>
+        <div className="sia-champ">
+          <label htmlFor="e-mes">
+            {editDraft.support === "physique" ? "Métrage linéaire (ml)" : "Volume (Go)"}
+          </label>
+          <input
+            id="e-mes"
+            className="mono"
+            inputMode="decimal"
+            value={editDraft.mesure}
+            autoComplete="off"
+            onChange={(e) => majEditChamp("mesure", e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: ".5rem", marginTop: ".4rem" }}>
+        <button className="sia-btn" onClick={validerModif}>
+          Enregistrer la modification
+        </button>
+        <button className="sia-link sia-mini" onClick={annulerModif}>
+          Annuler
+        </button>
+      </div>
+    </div>
+  );
+
   const ligneElim = (n) => {
     const tri = n.sort === "tri";
     return (
@@ -3294,12 +3592,18 @@ export default function SiaMoselle() {
             </button>
           </div>
         )}
+        {modifiable(n) && editId !== n.id && (
+          <button className="sia-link sia-mini" onClick={() => commencerModif(n)}>
+            Modifier la saisie
+          </button>
+        )}
         <button
           className="sia-link sia-mini sia-supprnotice"
           onClick={() => supprimerNotice(n.id)}
         >
           Supprimer la notice
         </button>
+        {editId === n.id && renderModif()}
       </div>
     );
   };
@@ -4245,54 +4549,62 @@ export default function SiaMoselle() {
                   Articles conservés ({conserves.length})
                 </div>
                 {conserves.map((n) => (
-                  <div className="sia-noticeligne" key={n.id}>
-                    <div>
-                      <div className="sia-noticecote">
-                        {n.cote || <span className="sia-sanscote">sans cote</span>}
+                  <div key={n.id}>
+                    <div className="sia-noticeligne">
+                      <div>
+                        <div className="sia-noticecote">
+                          {n.cote || <span className="sia-sanscote">sans cote</span>}
+                        </div>
+                        <div className="sia-noticeint">
+                          {n.intitule} — {n.dates}
+                          {n.mesure != null && (n.support === "numerique" ? ` · ${n.mesure} Go` : ` · ${n.mesure} ml`)}
+                        </div>
+                        <div className="sia-noticeloc">
+                          {n.loc
+                            ? n.loc.sae
+                              ? `SAE · ${n.loc.identifiant}`
+                              : `Magasin ${n.loc.magasin} · épi ${n.loc.epi} · travée ${n.loc.travee} · tablette ${n.loc.tablette}`
+                            : n.serie
+                            ? "Classé, en attente de cote ou d'emplacement"
+                            : "En attente de classement"}
+                        </div>
                       </div>
-                      <div className="sia-noticeint">
-                        {n.intitule} — {n.dates}
-                        {n.mesure != null && (n.support === "numerique" ? ` · ${n.mesure} Go` : ` · ${n.mesure} ml`)}
-                      </div>
-                      <div className="sia-noticeloc">
-                        {n.loc
-                          ? n.loc.sae
-                            ? `SAE · ${n.loc.identifiant}`
-                            : `Magasin ${n.loc.magasin} · épi ${n.loc.epi} · travée ${n.loc.travee} · tablette ${n.loc.tablette}`
-                          : n.serie
-                          ? "Classé, en attente de cote ou d'emplacement"
-                          : "En attente de classement"}
+                      <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap" }}>
+                        {!n.cote ? (
+                          <button
+                            className="sia-link sia-mini"
+                            onClick={() => allerA("classement")}
+                          >
+                            Étape 2 · Classer et coter
+                          </button>
+                        ) : !n.loc ? (
+                          <button
+                            className="sia-link sia-mini"
+                            onClick={() => {
+                              allerA("conservation");
+                              setPlacement(n.support === "numerique" ? null : n.id);
+                              if (typeof window !== "undefined")
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                            }}
+                          >
+                            Étape 3 · Placer en magasin
+                          </button>
+                        ) : (
+                          <button className="sia-link sia-mini" onClick={() => openCote(n.cote)}>
+                            Étape 4 · Communiquer
+                          </button>
+                        )}
+                        {modifiable(n) && editId !== n.id && (
+                          <button className="sia-link sia-mini" onClick={() => commencerModif(n)}>
+                            Modifier la saisie
+                          </button>
+                        )}
+                        <button className="sia-link sia-mini" onClick={() => supprimerNotice(n.id)}>
+                          Supprimer
+                        </button>
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: ".4rem" }}>
-                      {!n.cote ? (
-                        <button
-                          className="sia-link sia-mini"
-                          onClick={() => allerA("classement")}
-                        >
-                          Étape 2 · Classer et coter
-                        </button>
-                      ) : !n.loc ? (
-                        <button
-                          className="sia-link sia-mini"
-                          onClick={() => {
-                            allerA("conservation");
-                            setPlacement(n.support === "numerique" ? null : n.id);
-                            if (typeof window !== "undefined")
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                          }}
-                        >
-                          Étape 3 · Placer en magasin
-                        </button>
-                      ) : (
-                        <button className="sia-link sia-mini" onClick={() => openCote(n.cote)}>
-                          Étape 4 · Communiquer
-                        </button>
-                      )}
-                      <button className="sia-link sia-mini" onClick={() => supprimerNotice(n.id)}>
-                        Supprimer
-                      </button>
-                    </div>
+                    {editId === n.id && renderModif()}
                   </div>
                 ))}
               </div>
