@@ -2665,6 +2665,7 @@ export default function SiaMoselle() {
   const noticesRef = useRef([]);
   const [registre, setRegistre] = useState([]);
   const [registreOuvert, setRegistreOuvert] = useState(false);
+  const [lecteurActif, setLecteurActif] = useState(null);
   const [lecteurNom, setLecteurNom] = useState("");
   const [lErreur, setLErreur] = useState("");
   const [lValide, setLValide] = useState("");
@@ -2794,30 +2795,47 @@ export default function SiaMoselle() {
     sauverNotices(liste).then((ok) => setStockage(ok ? "actif" : "indisponible"));
   };
 
+  /* En salle de lecture, l'inscription précède la demande : on sait
+     qui consulte avant de chercher quoi que ce soit. Le lecteur une
+     fois inscrit reste actif jusqu'à ce qu'il cède la place. */
+  const inscrireLecteur = () => {
+    const nom = lecteurNom.trim();
+    if (!nom) {
+      setLErreur("Indiquez le nom du lecteur.");
+      return;
+    }
+    setLecteurActif(nom);
+    setLecteurNom("");
+    setLErreur("");
+    setLValide("");
+  };
+
+  const changerLecteur = () => {
+    setLecteurActif(null);
+    setLecteurNom("");
+    setLErreur("");
+    setLValide("");
+    setQuery("");
+    setResult(null);
+  };
+
   /* Le registre de communication trace qui a consulté quel article,
      et quand — la contrepartie, côté salle de lecture, du classement
      et de la conservation : un document retrouvé doit aussi pouvoir
      être tracé une fois communiqué. */
   const enregistrerCommunication = (cote, intitule) => {
-    const nom = lecteurNom.trim();
-    if (!nom) {
-      setLErreur("Indiquez le nom du lecteur.");
-      setLValide("");
-      return;
-    }
+    if (!lecteurActif) return;
     const entree = {
       id: `c${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`,
       cote,
       intitule,
-      lecteur: nom,
+      lecteur: lecteurActif,
       date: new Date().toLocaleDateString("fr-FR"),
     };
     const liste = [entree, ...registre];
     setRegistre(liste);
     sauverRegistre(liste);
-    setLErreur("");
-    setLValide(`Communication enregistrée pour ${nom}.`);
-    setLecteurNom("");
+    setLValide(`Communication enregistrée pour ${lecteurActif}.`);
   };
 
   const majArticle = (i, champ, valeur) => {
@@ -3318,9 +3336,7 @@ export default function SiaMoselle() {
   })();
 
   const runSearch = (raw) => {
-    setLErreur("");
     setLValide("");
-    setLecteurNom("");
     const key = String(raw).trim().toUpperCase().replace(/\s+/g, " ");
     if (!key) {
       setResult(null);
@@ -3524,134 +3540,16 @@ export default function SiaMoselle() {
               <div className="sia-eyebrow">Module de communication</div>
               <h1>Communiquer un article</h1>
               <p>
-                Saisissez une cote pour afficher sa notice et sa localisation exacte : site,
-                magasin, épi, travée, tablette. Les cotes du service et celles collectées en
-                atelier répondent de la même façon.
+                En salle de lecture, l'inscription précède la demande : indiquez d'abord qui
+                consulte, puis saisissez une cote pour afficher sa notice et sa localisation
+                exacte — site, magasin, épi, travée, tablette.
               </p>
             </div>
 
-            <div className="sia-panel">
-              <div className="sia-motstitre sia-premier">Recherche par cote</div>
-              <div className="sia-searchrow">
-                <label htmlFor="cote" className="sr-only" style={{ display: "none" }}>Cote</label>
-                <input
-                  id="cote"
-                  className="sia-input"
-                  value={query}
-                  placeholder="Ex. 472 HBL"
-                  autoComplete="off"
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && runSearch(query)}
-                />
-                <button className="sia-btn" onClick={() => runSearch(query)}>
-                  Rechercher
-                </button>
-              </div>
-              <div className="sia-hint">Appuyez sur Entrée ou cliquez sur Rechercher.</div>
-
-              <div className="sia-motstitre">Recherche par mot-clé</div>
-              <input
-                className="sia-filter"
-                style={{ marginBottom: ".4rem" }}
-                value={mots}
-                placeholder="Mine, Sarreguemines, hôpital, 1963…"
-                autoComplete="off"
-                onChange={(e) => setMots(e.target.value)}
-              />
-              <div className="sia-hint" style={{ marginTop: 0 }}>
-                Intitulé, producteur, dates ou série. C'est le rôle de l'instrument de recherche :
-                mener d'une question jusqu'à une cote.
-              </div>
-
-              {resultatsMots && (
-                <div className="sia-resultats">
-                  {resultatsMots.length === 0 ? (
-                    <div className="sia-noresult">
-                      Aucun article ne répond à cette recherche.
-                    </div>
-                  ) : (
-                    <>
-                      <div className="sia-chiptitre">
-                        {resultatsMots.length} article
-                        {resultatsMots.length > 1 ? "s" : ""} trouvé
-                        {resultatsMots.length > 1 ? "s" : ""}
-                      </div>
-                      {resultatsMots.map((a) => (
-                        <button
-                          key={a.cote}
-                          className="sia-resultat"
-                          onClick={() => {
-                            setQuery(a.cote);
-                            runSearch(a.cote);
-                          }}
-                        >
-                          <span className="sia-rescote">
-                            {a.cote}
-                            {a.atelier && <span className="sia-resatelier">atelier</span>}
-                          </span>
-                          <span className="sia-resint">{a.intitule}</span>
-                          <span className="sia-resmeta">
-                            {a.dates} · {a.producteur}
-                          </span>
-                        </button>
-                      ))}
-                    </>
-                  )}
-                </div>
-              )}
-              {notices.some((n) => n.cote) && (
-                <>
-                  <div className="sia-chiptitre">Cotes collectées en atelier</div>
-                  <div className="sia-chips">
-                    {notices.filter((n) => n.cote).map((n) => (
-                      <button
-                        key={n.id}
-                        className="sia-chip atelier"
-                        onClick={() => {
-                          setQuery(n.cote);
-                          runSearch(n.cote);
-                        }}
-                      >
-                        {n.cote}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              <div className="sia-chiptitre">Cotes de démonstration</div>
-              <div className="sia-chips">
-                {Object.keys(FONDS).map((c) => (
-                  <button
-                    key={c}
-                    className="sia-chip"
-                    onClick={() => {
-                      setQuery(c);
-                      runSearch(c);
-                    }}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {scanning && (
-              <div className="sia-scan">
-                <div className="sia-scanlabel">Repérage en cours dans les magasins…</div>
-                <div className="sia-scantrack"><div className="sia-beam" /></div>
-              </div>
-            )}
-
-            {!scanning && result && result.data && (
-              <Fiche key={result.cote} cote={result.cote} data={result.data} />
-            )}
-
-            {!scanning && result && result.data && result.data.comm === "libre" && result.data.loc && (
-              <div className="sia-panel" style={{ marginTop: "1.2rem" }}>
-                <div className="sia-motstitre sia-premier">Registre de communication</div>
+            {!lecteurActif ? (
+              <div className="sia-panel">
+                <div className="sia-motstitre sia-premier">Qui consulte ?</div>
                 {lErreur && <div className="sia-erreur">{lErreur}</div>}
-                {lValide && <div className="sia-valide">{lValide}</div>}
                 <div className="sia-searchrow">
                   <label htmlFor="lecteur" className="sr-only" style={{ display: "none" }}>
                     Nom du lecteur
@@ -3663,41 +3561,196 @@ export default function SiaMoselle() {
                     placeholder="Nom du lecteur"
                     autoComplete="off"
                     onChange={(e) => setLecteurNom(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" &&
-                      enregistrerCommunication(result.cote, result.data.intitule)
-                    }
+                    onKeyDown={(e) => e.key === "Enter" && inscrireLecteur()}
                   />
-                  <button
-                    className="sia-btn"
-                    onClick={() => enregistrerCommunication(result.cote, result.data.intitule)}
-                  >
-                    Enregistrer la communication
+                  <button className="sia-btn" onClick={inscrireLecteur}>
+                    Commencer la consultation
                   </button>
                 </div>
                 <div className="sia-hint">
-                  Trace, pour chaque consultation, qui a demandé quel article et quand — la
-                  contrepartie, en salle de lecture, du classement et de la conservation.
+                  L'inscription ouvre la recherche par cote, comme à l'accueil d'une salle de
+                  lecture.
                 </div>
               </div>
-            )}
+            ) : (
+              <>
+                <div
+                  className="sia-panel"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: ".6rem",
+                  }}
+                >
+                  <span>
+                    Lecteur : <b>{lecteurActif}</b>
+                  </span>
+                  <button className="sia-link sia-mini" onClick={changerLecteur}>
+                    Changer de lecteur
+                  </button>
+                </div>
 
-            {!scanning && result && !result.data && (
-              <div className="sia-empty">
-                <b>Aucune notice ne correspond à « {result.cote} ».</b>
-                <br />
-                {notices.length > 0 ? (
-                  <>
-                    Cotes collectées en atelier actuellement enregistrées :{" "}
-                    {notices.filter((n) => n.cote).map((n) => n.cote).join(", ") || "aucune"}.
-                  </>
-                ) : (
-                  <>
-                    Aucun article n'a encore été collecté. Vérifiez le format de la cote
-                    (par exemple <code>472 HBL</code>) ou choisissez l'une des cotes ci-dessus.
-                  </>
+                <div className="sia-panel">
+                  <div className="sia-motstitre sia-premier">Recherche par cote</div>
+                  <div className="sia-searchrow">
+                    <label htmlFor="cote" className="sr-only" style={{ display: "none" }}>Cote</label>
+                    <input
+                      id="cote"
+                      className="sia-input"
+                      value={query}
+                      placeholder="Ex. 472 HBL"
+                      autoComplete="off"
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && runSearch(query)}
+                    />
+                    <button className="sia-btn" onClick={() => runSearch(query)}>
+                      Rechercher
+                    </button>
+                  </div>
+                  <div className="sia-hint">Appuyez sur Entrée ou cliquez sur Rechercher.</div>
+
+                  <div className="sia-motstitre">Recherche par mot-clé</div>
+                  <input
+                    className="sia-filter"
+                    style={{ marginBottom: ".4rem" }}
+                    value={mots}
+                    placeholder="Mine, Sarreguemines, hôpital, 1963…"
+                    autoComplete="off"
+                    onChange={(e) => setMots(e.target.value)}
+                  />
+                  <div className="sia-hint" style={{ marginTop: 0 }}>
+                    Intitulé, producteur, dates ou série. C'est le rôle de l'instrument de
+                    recherche : mener d'une question jusqu'à une cote.
+                  </div>
+
+                  {resultatsMots && (
+                    <div className="sia-resultats">
+                      {resultatsMots.length === 0 ? (
+                        <div className="sia-noresult">
+                          Aucun article ne répond à cette recherche.
+                        </div>
+                      ) : (
+                        <>
+                          <div className="sia-chiptitre">
+                            {resultatsMots.length} article
+                            {resultatsMots.length > 1 ? "s" : ""} trouvé
+                            {resultatsMots.length > 1 ? "s" : ""}
+                          </div>
+                          {resultatsMots.map((a) => (
+                            <button
+                              key={a.cote}
+                              className="sia-resultat"
+                              onClick={() => {
+                                setQuery(a.cote);
+                                runSearch(a.cote);
+                              }}
+                            >
+                              <span className="sia-rescote">
+                                {a.cote}
+                                {a.atelier && <span className="sia-resatelier">atelier</span>}
+                              </span>
+                              <span className="sia-resint">{a.intitule}</span>
+                              <span className="sia-resmeta">
+                                {a.dates} · {a.producteur}
+                              </span>
+                            </button>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {notices.some((n) => n.cote) && (
+                    <>
+                      <div className="sia-chiptitre">Cotes collectées en atelier</div>
+                      <div className="sia-chips">
+                        {notices.filter((n) => n.cote).map((n) => (
+                          <button
+                            key={n.id}
+                            className="sia-chip atelier"
+                            onClick={() => {
+                              setQuery(n.cote);
+                              runSearch(n.cote);
+                            }}
+                          >
+                            {n.cote}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  <div className="sia-chiptitre">Cotes de démonstration</div>
+                  <div className="sia-chips">
+                    {Object.keys(FONDS).map((c) => (
+                      <button
+                        key={c}
+                        className="sia-chip"
+                        onClick={() => {
+                          setQuery(c);
+                          runSearch(c);
+                        }}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {scanning && (
+                  <div className="sia-scan">
+                    <div className="sia-scanlabel">Repérage en cours dans les magasins…</div>
+                    <div className="sia-scantrack"><div className="sia-beam" /></div>
+                  </div>
                 )}
-              </div>
+
+                {!scanning && result && result.data && (
+                  <Fiche key={result.cote} cote={result.cote} data={result.data} />
+                )}
+
+                {!scanning &&
+                  result &&
+                  result.data &&
+                  result.data.comm === "libre" &&
+                  result.data.loc && (
+                    <div className="sia-panel" style={{ marginTop: "1.2rem" }}>
+                      <div className="sia-motstitre sia-premier">Enregistrer la communication</div>
+                      {lValide && <div className="sia-valide">{lValide}</div>}
+                      <button
+                        className="sia-btn"
+                        onClick={() =>
+                          enregistrerCommunication(result.cote, result.data.intitule)
+                        }
+                      >
+                        Enregistrer la communication pour {lecteurActif}
+                      </button>
+                      <div className="sia-hint">
+                        Trace, pour chaque consultation, qui a demandé quel article et quand — la
+                        contrepartie, en salle de lecture, du classement et de la conservation.
+                      </div>
+                    </div>
+                  )}
+
+                {!scanning && result && !result.data && (
+                  <div className="sia-empty">
+                    <b>Aucune notice ne correspond à « {result.cote} ».</b>
+                    <br />
+                    {notices.length > 0 ? (
+                      <>
+                        Cotes collectées en atelier actuellement enregistrées :{" "}
+                        {notices.filter((n) => n.cote).map((n) => n.cote).join(", ") || "aucune"}.
+                      </>
+                    ) : (
+                      <>
+                        Aucun article n'a encore été collecté. Vérifiez le format de la cote
+                        (par exemple <code>472 HBL</code>) ou choisissez l'une des cotes
+                        ci-dessus.
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
             )}
 
             {registre.length > 0 && (
