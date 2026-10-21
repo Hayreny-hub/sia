@@ -2155,9 +2155,7 @@ const MOTIFS_ELIMINATION = [
    type, pièces à valeur probatoire), le reste est écarté. */
 const MOTIFS_TRI = [
   { code: "echantillon", label: "Échantillonnage représentatif d'une série homogène" },
-  { code: "type", label: "Conservation d'un exemplaire type, élimination des doublons" },
   { code: "probatoire", label: "Seules les pièces à valeur probatoire sont conservées" },
-  { code: "seuil", label: "Tri par seuil (montant, importance) prévu au tableau de gestion" },
 ];
 
 const SORTS = [
