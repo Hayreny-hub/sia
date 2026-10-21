@@ -1986,6 +1986,33 @@ async function sauverNotices(liste) {
   }
 }
 
+/* Le registre de communication : qui a consulté quel article, et
+   quand. Même logique de persistance que les notices, sous une clé
+   distincte. */
+const CLE_REGISTRE = "sia:registre";
+
+async function chargerRegistre() {
+  if (!stockageDispo()) return null;
+  try {
+    const r = await window.storage.get(CLE_REGISTRE, false);
+    if (!r || !r.value) return [];
+    const l = JSON.parse(r.value);
+    return Array.isArray(l) ? l : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function sauverRegistre(liste) {
+  if (!stockageDispo()) return false;
+  try {
+    const r = await window.storage.set(CLE_REGISTRE, JSON.stringify(liste), false);
+    return r !== null && r !== undefined;
+  } catch (e) {
+    return false;
+  }
+}
+
 /* ============================================================
    Cadre de classement — séries en usage dans les archives
    départementales, proposées au classement des articles
@@ -2636,6 +2663,11 @@ export default function SiaMoselle() {
   const [notices, setNotices] = useState([]);
   const [stockage, setStockage] = useState("inconnu");
   const noticesRef = useRef([]);
+  const [registre, setRegistre] = useState([]);
+  const [registreOuvert, setRegistreOuvert] = useState(false);
+  const [lecteurNom, setLecteurNom] = useState("");
+  const [lErreur, setLErreur] = useState("");
+  const [lValide, setLValide] = useState("");
   const [fErreur, setFErreur] = useState("");
   const [fValide, setFValide] = useState("");
   const [fProducteur, setFProducteur] = useState("");
@@ -2707,6 +2739,17 @@ export default function SiaMoselle() {
     };
   }, []);
 
+  useEffect(() => {
+    let vivant = true;
+    chargerRegistre().then((l) => {
+      if (!vivant || l === null || !l.length) return;
+      setRegistre(l);
+    });
+    return () => {
+      vivant = false;
+    };
+  }, []);
+
   /* Tout enregistrement passe par ici, pour que l'état du stockage
      reflète ce qui s'est réellement passé. */
   /* Les articles éliminés quittent le circuit : ni classés, ni cotés,
@@ -2749,6 +2792,32 @@ export default function SiaMoselle() {
     noticesRef.current = liste;
     setNotices(liste);
     sauverNotices(liste).then((ok) => setStockage(ok ? "actif" : "indisponible"));
+  };
+
+  /* Le registre de communication trace qui a consulté quel article,
+     et quand — la contrepartie, côté salle de lecture, du classement
+     et de la conservation : un document retrouvé doit aussi pouvoir
+     être tracé une fois communiqué. */
+  const enregistrerCommunication = (cote, intitule) => {
+    const nom = lecteurNom.trim();
+    if (!nom) {
+      setLErreur("Indiquez le nom du lecteur.");
+      setLValide("");
+      return;
+    }
+    const entree = {
+      id: `c${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`,
+      cote,
+      intitule,
+      lecteur: nom,
+      date: new Date().toLocaleDateString("fr-FR"),
+    };
+    const liste = [entree, ...registre];
+    setRegistre(liste);
+    sauverRegistre(liste);
+    setLErreur("");
+    setLValide(`Communication enregistrée pour ${nom}.`);
+    setLecteurNom("");
   };
 
   const majArticle = (i, champ, valeur) => {
@@ -3249,6 +3318,9 @@ export default function SiaMoselle() {
   })();
 
   const runSearch = (raw) => {
+    setLErreur("");
+    setLValide("");
+    setLecteurNom("");
     const key = String(raw).trim().toUpperCase().replace(/\s+/g, " ");
     if (!key) {
       setResult(null);
@@ -3575,6 +3647,41 @@ export default function SiaMoselle() {
               <Fiche key={result.cote} cote={result.cote} data={result.data} />
             )}
 
+            {!scanning && result && result.data && result.data.comm === "libre" && result.data.loc && (
+              <div className="sia-panel" style={{ marginTop: "1.2rem" }}>
+                <div className="sia-motstitre sia-premier">Registre de communication</div>
+                {lErreur && <div className="sia-erreur">{lErreur}</div>}
+                {lValide && <div className="sia-valide">{lValide}</div>}
+                <div className="sia-searchrow">
+                  <label htmlFor="lecteur" className="sr-only" style={{ display: "none" }}>
+                    Nom du lecteur
+                  </label>
+                  <input
+                    id="lecteur"
+                    className="sia-input"
+                    value={lecteurNom}
+                    placeholder="Nom du lecteur"
+                    autoComplete="off"
+                    onChange={(e) => setLecteurNom(e.target.value)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" &&
+                      enregistrerCommunication(result.cote, result.data.intitule)
+                    }
+                  />
+                  <button
+                    className="sia-btn"
+                    onClick={() => enregistrerCommunication(result.cote, result.data.intitule)}
+                  >
+                    Enregistrer la communication
+                  </button>
+                </div>
+                <div className="sia-hint">
+                  Trace, pour chaque consultation, qui a demandé quel article et quand — la
+                  contrepartie, en salle de lecture, du classement et de la conservation.
+                </div>
+              </div>
+            )}
+
             {!scanning && result && !result.data && (
               <div className="sia-empty">
                 <b>Aucune notice ne correspond à « {result.cote} ».</b>
@@ -3591,6 +3698,35 @@ export default function SiaMoselle() {
                   </>
                 )}
               </div>
+            )}
+
+            {registre.length > 0 && (
+              <>
+                <button
+                  className="sia-depliant"
+                  onClick={() => setRegistreOuvert((v) => !v)}
+                  aria-expanded={registreOuvert}
+                  style={{ marginTop: "1.6rem" }}
+                >
+                  <span className="sia-depliantfleche" aria-hidden="true">
+                    {registreOuvert ? "▾" : "▸"}
+                  </span>
+                  Registre de communication ({registre.length})
+                </button>
+
+                {registreOuvert && (
+                  <div className="sia-panel" style={{ marginTop: ".8rem" }}>
+                    {registre.map((r) => (
+                      <div className="sia-elimligne" key={r.id}>
+                        <div className="sia-elimint">{r.lecteur}</div>
+                        <div className="sia-elimmeta">
+                          {r.date} · {r.cote} · {r.intitule}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
