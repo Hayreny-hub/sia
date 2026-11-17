@@ -4102,13 +4102,6 @@ export default function SiaMoselle() {
           >
             Éliminer{ecartes.length > 0 ? ` (${ecartes.length})` : ""}
           </button>
-          <button
-            className="sia-ressource"
-            data-active={tab === "bilan"}
-            onClick={() => allerA("bilan")}
-          >
-            Bilan{bilanCollectif.length > 0 ? ` (${bilanCollectif.length})` : ""}
-          </button>
         </div>
       </header>
 
@@ -5554,6 +5547,11 @@ export default function SiaMoselle() {
 
         <div className="sia-foot">
           Jeu de données fictif conçu pour un atelier de valorisation des fonds d'archives.
+          <br />
+          <button className="sia-inline" onClick={() => allerA("bilan")}>
+            Bilan collectif{bilanCollectif.length > 0 ? ` (${bilanCollectif.length})` : ""}
+          </button>
+          {" "}— réservé à l'animatrice, en fin de séance.
         </div>
       </main>
     </div>
