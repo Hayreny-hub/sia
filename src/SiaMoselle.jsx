@@ -1503,8 +1503,8 @@ const CSS = `
   .sia-etiq{font-size:.62rem;}
   .sia-num{width:23px;height:23px;font-size:.68rem;}
   .sia-etape:not(:first-child)::before{width:10px;}
-  .sia-ressources{width:100%;gap:.35rem;margin-top:.3rem;}
-  .sia-ressource{font-size:.58rem;padding:.3rem .2rem;flex:1 1 0;text-align:center;}
+  .sia-ressources{width:100%;gap:.35rem;margin-top:.3rem;justify-content:flex-end;}
+  .sia-ressource{font-size:.58rem;padding:.3rem .55rem;}
   .sia-nom{font-size:1rem;}
   .sia-searchrow{flex-direction:column;}
   .sia-btn{padding:.7rem 1.3rem;}
