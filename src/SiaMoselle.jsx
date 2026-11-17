@@ -1023,6 +1023,7 @@ const CSS = `
 .sia-etape button[data-active="true"] .sia-etiq{color:#fff;font-weight:600;}
 .sia-etape button:hover .sia-etiq{color:#e9e4d4;}
 .sia-etape button:focus-visible{outline:2px solid var(--red);outline-offset:2px;border-radius:3px;}
+.sia-ressources{display:flex;gap:.5rem;flex-wrap:wrap;}
 .sia-ressource{font-family:'IBM Plex Sans',sans-serif;font-size:.72rem;background:none;
   border:1px solid rgba(233,228,212,.3);color:#c7c0ab;padding:.3rem .6rem;border-radius:2px;
   cursor:pointer;white-space:nowrap;}
@@ -1502,7 +1503,8 @@ const CSS = `
   .sia-etiq{font-size:.62rem;}
   .sia-num{width:23px;height:23px;font-size:.68rem;}
   .sia-etape:not(:first-child)::before{width:10px;}
-  .sia-ressource{font-size:.66rem;padding:.25rem .45rem;}
+  .sia-ressources{width:100%;gap:.4rem;}
+  .sia-ressource{font-size:.66rem;padding:.4rem .3rem;flex:1 1 0;text-align:center;}
   .sia-nom{font-size:1rem;}
   .sia-searchrow{flex-direction:column;}
   .sia-btn{padding:.7rem 1.3rem;}
@@ -4084,6 +4086,8 @@ export default function SiaMoselle() {
               </li>
             ))}
           </ol>
+        </nav>
+        <div className="sia-ressources">
           <button
             className="sia-ressource"
             data-active={tab === "producteurs"}
@@ -4103,9 +4107,9 @@ export default function SiaMoselle() {
             data-active={tab === "bilan"}
             onClick={() => allerA("bilan")}
           >
-            Bilan collectif{bilanCollectif.length > 0 ? ` (${bilanCollectif.length})` : ""}
+            Bilan{bilanCollectif.length > 0 ? ` (${bilanCollectif.length})` : ""}
           </button>
-        </nav>
+        </div>
       </header>
 
       <main className="sia-wrap">
