@@ -4090,17 +4090,17 @@ export default function SiaMoselle() {
         <div className="sia-ressources">
           <button
             className="sia-ressource"
-            data-active={tab === "producteurs"}
-            onClick={() => allerA("producteurs")}
-          >
-            Producteurs
-          </button>
-          <button
-            className="sia-ressource"
             data-active={tab === "elimination"}
             onClick={() => allerA("elimination")}
           >
             Éliminer{ecartes.length > 0 ? ` (${ecartes.length})` : ""}
+          </button>
+          <button
+            className="sia-ressource"
+            data-active={tab === "producteurs"}
+            onClick={() => allerA("producteurs")}
+          >
+            Producteurs
           </button>
         </div>
       </header>
