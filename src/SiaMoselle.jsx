@@ -2776,9 +2776,16 @@ export default function SiaMoselle() {
   const elimines = notices.filter((n) => n.sort === "elimination");
   const atrier = notices.filter((n) => n.sort === "tri");
   const ecartes = [...elimines, ...atrier];
-  const mlRecu = notices
+  /* L'échantillon conservé par un tri sélectif est physiquement gardé :
+     il doit grossir le total reçu et compter comme conservé, sans quoi
+     le pourcentage affiché contredirait la ligne qui l'annonce. */
+  const mlEchantillon = atrier
     .filter((n) => n.support === "physique")
-    .reduce((t, n) => t + (n.mesure || 0), 0);
+    .reduce((t, n) => t + (n.echantillon || 0), 0);
+  const mlRecu =
+    notices
+      .filter((n) => n.support === "physique")
+      .reduce((t, n) => t + (n.mesure || 0), 0) + mlEchantillon;
   const mlEcarte = ecartes
     .filter((n) => n.support === "physique")
     .reduce((t, n) => t + (n.mesure || 0), 0);
@@ -3133,6 +3140,11 @@ export default function SiaMoselle() {
       L.push(
         `     Metrage : ${n.mesure} ${n.support === "numerique" ? "Go" : "ml"}`
       );
+      if (n.sort === "tri" && n.echantillon != null) {
+        L.push(
+          `     Dont echantillon conserve (hors total ecarte) : ${n.echantillon} ${n.support === "numerique" ? "Go" : "ml"}`
+        );
+      }
       L.push(`     Justification : ${n.justification || "non renseignee"}`);
       L.push(
         `     Visa : ${n.visa === "accepte" ? "accorde — article detruit" : "en attente"}`
@@ -3141,6 +3153,9 @@ export default function SiaMoselle() {
     });
     L.push("-".repeat(78));
     L.push(`TOTAL ECARTE (ELIMINATION + TRI) : ${mlEcarte.toFixed(2)} ml`);
+    if (mlEchantillon > 0) {
+      L.push(`DONT ECHANTILLONS CONSERVES (TRI SELECTIF) : ${mlEchantillon.toFixed(2)} ml`);
+    }
     if (mlRecu > 0) {
       const garde = mlRecu - mlEcarte;
       const taux = Math.round((garde / mlRecu) * 100);
@@ -3249,7 +3264,9 @@ export default function SiaMoselle() {
   const refuserElimination = (id) => {
     enregistrer(
       notices.map((n) =>
-        n.id === id ? { ...n, sort: "conservation", justification: "", visa: null } : n
+        n.id === id
+          ? { ...n, sort: "conservation", justification: "", visa: null, echantillon: null }
+          : n
       )
     );
   };
@@ -3301,6 +3318,7 @@ export default function SiaMoselle() {
       if (champ === "nature" && valeur === "privee") {
         next.sort = "conservation";
         next.justification = "";
+        next.echantillon = "";
       }
       if (champ === "sort") {
         next.justification =
@@ -3560,7 +3578,7 @@ export default function SiaMoselle() {
       {editDraft.sort === "tri" && (
         <div className="sia-champ">
           <label htmlFor="e-ech">
-            Dont échantillon conservé ({editDraft.support === "physique" ? "ml" : "Go"})
+            Échantillon conservé séparément ({editDraft.support === "physique" ? "ml" : "Go"})
           </label>
           <input
             id="e-ech"
@@ -3603,8 +3621,8 @@ export default function SiaMoselle() {
         </div>
         {tri && n.echantillon != null && (
           <div className="sia-elimmeta">
-            Dont {n.echantillon} {n.support === "numerique" ? "Go" : "ml"} conservé en échantillon
-            (indicatif — n'ouvre pas d'article classé).
+            Par ailleurs, {n.echantillon} {n.support === "numerique" ? "Go" : "ml"} conservé
+            séparément en échantillon (indicatif — n'ouvre pas d'article classé).
           </div>
         )}
         <div className="sia-elimjust">{n.justification}</div>
@@ -4547,7 +4565,7 @@ export default function SiaMoselle() {
                   {a.sort === "tri" && (
                     <div className="sia-champ">
                       <label htmlFor={`a-ech-${i}`}>
-                        Dont échantillon conservé ({a.support === "physique" ? "ml" : "Go"})
+                        Échantillon conservé séparément ({a.support === "physique" ? "ml" : "Go"})
                       </label>
                       <input
                         id={`a-ech-${i}`}
