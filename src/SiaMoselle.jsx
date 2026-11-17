@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import QRCode from "qrcode";
+import jsQR from "jsqr";
 
 
 /* Affiche syndicale conservee dans le fonds associatif (690 J). */
@@ -1235,6 +1237,16 @@ const CSS = `
 .sia-elimactions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;}
 .sia-elimnote{font-size:.76rem;color:var(--ink-soft);line-height:1.5;margin-top:.9rem;
   padding-top:.8rem;border-top:1px dashed var(--line);}
+
+/* Module bilan collectif */
+.sia-bilancarte{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:flex-start;}
+.sia-bilanqr{width:200px;height:200px;border:1px solid var(--kraft);border-radius:2px;
+  background:#faf6ea;padding:.5rem;flex-shrink:0;}
+.sia-bilantexte{flex:1 1 280px;min-width:0;}
+.sia-bilanrepli{background:var(--paper-dark);border:1px dashed var(--kraft);border-radius:2px;
+  padding:.8rem .9rem;font-size:.78rem;line-height:1.7;color:var(--ink);margin-top:.5rem;}
+.sia-bilanvideo{width:100%;max-width:420px;border:1px solid var(--kraft);border-radius:2px;
+  margin-top:.8rem;background:#000;}
 .sia-rappelelim{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:1.2rem;
   font-size:.8rem;color:var(--ink-soft);padding-left:.7rem;border-left:3px solid var(--red);}
 .sia-noticeligne{display:flex;justify-content:space-between;align-items:center;gap:.7rem;
@@ -2669,6 +2681,16 @@ export default function SiaMoselle() {
   const [editId, setEditId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
   const [editErreur, setEditErreur] = useState("");
+  const [bilanCollectif, setBilanCollectif] = useState([]);
+  const [scanActif, setScanActif] = useState(false);
+  const [scanErreur, setScanErreur] = useState("");
+  const [scanMsg, setScanMsg] = useState("");
+  const videoRef = useRef(null);
+  const scanCanvasRef = useRef(null);
+  const qrCanvasRef = useRef(null);
+  const streamRef = useRef(null);
+  const scanLoopRef = useRef(null);
+  const dernierScanRef = useRef("");
   const [mots, setMots] = useState("");
   const [coCible, setCoCible] = useState(null);
   const [coSaisie, setCoSaisie] = useState("");
@@ -2789,6 +2811,46 @@ export default function SiaMoselle() {
   const mlEcarte = ecartes
     .filter((n) => n.support === "physique")
     .reduce((t, n) => t + (n.mesure || 0), 0);
+
+  /* Le bilan d'un poste se résume à l'essentiel pour tenir dans un QR
+     code lisible par une webcam : producteur(s) et, par article,
+     juste de quoi reconstituer une ligne de compte-rendu. */
+  const monBilan =
+    notices.length === 0
+      ? null
+      : {
+          groupe: [...new Set(notices.map((n) => n.producteur))].filter(Boolean).join(" / "),
+          items: notices.map((n) => ({
+            t: n.intitule,
+            s: n.sort,
+            c: n.cote || null,
+            d: n.dates,
+            e: n.sort === "tri" ? n.echantillon : null,
+          })),
+        };
+
+  const monBilanTexte = monBilan ? JSON.stringify(monBilan) : "";
+
+  useEffect(() => {
+    if (!qrCanvasRef.current) return;
+    if (!monBilanTexte) return;
+    QRCode.toCanvas(qrCanvasRef.current, monBilanTexte, {
+      width: 220,
+      margin: 1,
+      color: { dark: "#2f4a3a", light: "#faf6ea" },
+    }).catch(() => {
+      /* QR indisponible : le repli en texte reste affiche */
+    });
+  }, [monBilanTexte, tab]);
+
+  /* On coupe la camera des qu'on quitte l'onglet, pour ne pas laisser
+     un flux video actif en arriere-plan. */
+  useEffect(() => {
+    if (tab !== "bilan" && streamRef.current) {
+      arreterScan();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   const enregistrer = (liste) => {
     noticesRef.current = liste;
@@ -3187,6 +3249,152 @@ export default function SiaMoselle() {
       const a = document.createElement("a");
       a.href = url;
       a.download = "bordereau-elimination.txt";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (e) {
+      /* telechargement indisponible */
+    }
+  };
+
+  /* Bilan collectif : chaque poste reste isolé (aucun stockage partagé),
+     donc la mise en commun passe par un QR code que l'animatrice scanne
+     avec son propre poste. Le code encode le bilan tel quel ; le même
+     contenu est aussi affiché en texte, pour s'en sortir sans caméra. */
+  const totalCollectif = bilanCollectif.reduce(
+    (acc, g) => {
+      g.items.forEach((it) => {
+        if (it.s === "conservation") acc.conserves++;
+        else if (it.s === "elimination") acc.elimines++;
+        else if (it.s === "tri") acc.tries++;
+      });
+      return acc;
+    },
+    { conserves: 0, elimines: 0, tries: 0 }
+  );
+
+  const demarrerScan = async () => {
+    setScanErreur("");
+    setScanMsg("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      dernierScanRef.current = "";
+      setScanActif(true);
+      scanLoopRef.current = requestAnimationFrame(boucleScan);
+    } catch (e) {
+      setScanErreur(
+        "Caméra indisponible : " + (e && e.message ? e.message : "accès refusé.")
+      );
+    }
+  };
+
+  const arreterScan = () => {
+    if (scanLoopRef.current) cancelAnimationFrame(scanLoopRef.current);
+    scanLoopRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setScanActif(false);
+  };
+
+  const traiterScan = (texte) => {
+    let payload;
+    try {
+      payload = JSON.parse(texte);
+    } catch (e) {
+      setScanErreur("QR illisible : ce n'est pas un bilan SIA valide.");
+      return;
+    }
+    if (!payload || !Array.isArray(payload.items)) {
+      setScanErreur("QR illisible : ce n'est pas un bilan SIA valide.");
+      return;
+    }
+    const entree = {
+      id: `b${Date.now().toString(36)}`,
+      groupe: payload.groupe || "Groupe sans nom",
+      items: payload.items,
+      heure: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+    };
+    setBilanCollectif((prev) => [...prev, entree]);
+    setScanErreur("");
+    setScanMsg(
+      `Bilan ajouté : ${entree.groupe} (${entree.items.length} article${
+        entree.items.length > 1 ? "s" : ""
+      }).`
+    );
+  };
+
+  const boucleScan = () => {
+    const video = videoRef.current;
+    const canvas = scanCanvasRef.current;
+    if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+      scanLoopRef.current = requestAnimationFrame(boucleScan);
+      return;
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    try {
+      const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(image.data, image.width, image.height);
+      if (code && code.data && code.data !== dernierScanRef.current) {
+        dernierScanRef.current = code.data;
+        traiterScan(code.data);
+      }
+    } catch (e) {
+      /* image pas encore exploitable, on retente à la frame suivante */
+    }
+    scanLoopRef.current = requestAnimationFrame(boucleScan);
+  };
+
+  const supprimerBilan = (id) => {
+    setBilanCollectif((prev) => prev.filter((g) => g.id !== id));
+  };
+
+  const editerBilanCollectif = () => {
+    if (bilanCollectif.length === 0) return;
+    const L = [];
+    L.push("=".repeat(70));
+    L.push("ARCHIVES DEPARTEMENTALES DE LA MOSELLE");
+    L.push("BILAN COLLECTIF DE L'ATELIER");
+    L.push("=".repeat(70));
+    L.push("");
+    bilanCollectif.forEach((g, i) => {
+      L.push(`${String(i + 1).padStart(2, " ")}. ${g.groupe} (scanne a ${g.heure})`);
+      g.items.forEach((it) => {
+        const sort =
+          it.s === "conservation" ? "conserve" : it.s === "elimination" ? "elimine" : "trie";
+        const cote = it.c ? ` - cote ${it.c}` : "";
+        L.push(`     - [${sort}] ${it.t}${cote}`);
+        if (it.e != null) {
+          L.push(`       dont echantillon conserve separement : ${it.e}`);
+        }
+      });
+      L.push("");
+    });
+    L.push("-".repeat(70));
+    L.push(
+      `TOTAL CLASSE : ${totalCollectif.conserves} conserve(s), ${totalCollectif.elimines} elimine(s), ${totalCollectif.tries} trie(s).`
+    );
+    L.push("-".repeat(70));
+    try {
+      const blob = new Blob(["﻿" + L.join("\n")], {
+        type: "text/plain;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bilan-collectif-atelier.txt";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -3889,6 +4097,13 @@ export default function SiaMoselle() {
             onClick={() => allerA("elimination")}
           >
             Éliminer{ecartes.length > 0 ? ` (${ecartes.length})` : ""}
+          </button>
+          <button
+            className="sia-ressource"
+            data-active={tab === "bilan"}
+            onClick={() => allerA("bilan")}
+          >
+            Bilan collectif{bilanCollectif.length > 0 ? ` (${bilanCollectif.length})` : ""}
           </button>
         </nav>
       </header>
@@ -5197,6 +5412,139 @@ export default function SiaMoselle() {
                 </div>
               </div>
             )}
+          </>
+        )}
+
+        {tab === "bilan" && (
+          <>
+            <div className="sia-intro">
+              <div className="sia-eyebrow">Module bilan collectif</div>
+              <h1>Mettre en commun les postes</h1>
+              <p>
+                Chaque poste reste isolé pendant l'atelier : aucune saisie n'est jamais visible
+                ailleurs. Cette page sert à rassembler les résultats à la fin de la séance, sans
+                retaper le détail de chaque groupe.
+              </p>
+            </div>
+
+            <div className="sia-panel">
+              <div className="sia-motstitre sia-premier">Mon bilan (à faire scanner)</div>
+              {!monBilan ? (
+                <div className="sia-vide">
+                  Rien à résumer pour l'instant — décrivez d'abord un versement dans l'onglet
+                  Collecter.
+                </div>
+              ) : (
+                <div className="sia-bilancarte">
+                  <canvas ref={qrCanvasRef} className="sia-bilanqr" />
+                  <div className="sia-bilantexte">
+                    <div className="sia-hint" style={{ marginTop: 0 }}>
+                      À scanner avec la caméra de l'animatrice. Si elle ne capte pas, lisez-lui
+                      (ou montrez-lui) simplement ceci :
+                    </div>
+                    <div className="sia-bilanrepli mono">
+                      {monBilan.groupe} — {monBilan.items.length} article
+                      {monBilan.items.length > 1 ? "s" : ""}
+                      {monBilan.items.map((it, i) => (
+                        <div key={i}>
+                          {i + 1}.{" "}
+                          {it.s === "conservation"
+                            ? "Conservé"
+                            : it.s === "elimination"
+                            ? "Éliminé"
+                            : "Tri sélectif"}{" "}
+                          — {it.t}
+                          {it.c ? ` — cote ${it.c}` : ""}
+                          {it.e != null ? ` (dont ${it.e} en échantillon)` : ""}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="sia-panel" style={{ marginTop: "1rem" }}>
+              <div className="sia-motstitre sia-premier">Scanner un bilan de groupe</div>
+              {scanErreur && <div className="sia-erreur">{scanErreur}</div>}
+              {scanMsg && <div className="sia-valide">{scanMsg}</div>}
+
+              <div style={{ display: "flex", gap: ".6rem", alignItems: "center", flexWrap: "wrap" }}>
+                {!scanActif ? (
+                  <button className="sia-btn" onClick={demarrerScan}>
+                    Démarrer la caméra
+                  </button>
+                ) : (
+                  <button className="sia-link" onClick={arreterScan}>
+                    Arrêter la caméra
+                  </button>
+                )}
+              </div>
+
+              <video
+                ref={videoRef}
+                className="sia-bilanvideo"
+                style={{ display: scanActif ? "block" : "none" }}
+                playsInline
+                muted
+              />
+              <canvas ref={scanCanvasRef} style={{ display: "none" }} />
+
+              <div className="sia-hint">
+                Pointez la caméra vers l'écran du groupe, bien éclairé et stable quelques
+                secondes. Si ça ne capte pas, utilisez le texte affiché sur son poste.
+              </div>
+
+              {bilanCollectif.length > 0 && (
+                <>
+                  <div className="sia-bordhead" style={{ marginTop: "1.2rem" }}>
+                    <div className="sia-eyebrow" style={{ textAlign: "left", margin: 0 }}>
+                      Groupes ajoutés ({bilanCollectif.length})
+                    </div>
+                    <button className="sia-link sia-mini" onClick={editerBilanCollectif}>
+                      Éditer le bilan collectif
+                    </button>
+                  </div>
+
+                  <div className="sia-ratio">
+                    <span className="sia-ratiochiffre">{totalCollectif.conserves}</span>
+                    <span>
+                      conservé{totalCollectif.conserves > 1 ? "s" : ""} · {totalCollectif.elimines}{" "}
+                      éliminé{totalCollectif.elimines > 1 ? "s" : ""} · {totalCollectif.tries} trié
+                      {totalCollectif.tries > 1 ? "s" : ""}, tous groupes confondus.
+                    </span>
+                  </div>
+
+                  {bilanCollectif.map((g) => (
+                    <div className="sia-elimligne" key={g.id}>
+                      <div className="sia-elimint">
+                        {g.groupe} <span className="sia-sanscote">— {g.heure}</span>
+                      </div>
+                      <div className="sia-elimmeta">
+                        {g.items.length} article{g.items.length > 1 ? "s" : ""}
+                      </div>
+                      {g.items.map((it, i) => (
+                        <div className="sia-elimmeta" key={i}>
+                          {it.s === "conservation"
+                            ? "Conservé"
+                            : it.s === "elimination"
+                            ? "Éliminé"
+                            : "Tri sélectif"}{" "}
+                          — {it.t}
+                          {it.c ? ` — cote ${it.c}` : ""}
+                        </div>
+                      ))}
+                      <button
+                        className="sia-link sia-mini sia-supprnotice"
+                        onClick={() => supprimerBilan(g.id)}
+                      >
+                        Retirer ce groupe du bilan
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
           </>
         )}
 
