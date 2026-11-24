@@ -1246,8 +1246,8 @@ const CSS = `
   background:#faf6ea;padding:.5rem;flex-shrink:0;}
 .sia-bilantexte{flex:1 1 280px;min-width:0;}
 .sia-bilanbarres{margin-top:.3rem;}
-.sia-bilanbarre{max-width:100%;height:auto;background:#faf6ea;border:1px solid var(--kraft);
-  border-radius:2px;padding:.4rem;}
+.sia-bilanbarre{display:block;width:100%;height:auto;min-height:70px;background:#faf6ea;
+  border:1px solid var(--kraft);border-radius:2px;padding:.4rem;box-sizing:border-box;}
 .sia-bilanrepli{background:var(--paper-dark);border:1px dashed var(--kraft);border-radius:2px;
   padding:.8rem .9rem;font-size:.78rem;line-height:1.7;color:var(--ink);margin-top:.5rem;}
 .sia-bilanvideo{width:100%;max-width:420px;border:1px solid var(--kraft);border-radius:2px;
@@ -5604,7 +5604,7 @@ export default function SiaMoselle() {
                     Ou avec un lecteur de codes-barres (sans caméra, sans QR) — les accents sont
                     retirés automatiquement, sans conséquence sur l'import :
                   </div>
-                  <canvas ref={barcodeCanvasRef} className="sia-bilanbarre" />
+                  <svg ref={barcodeCanvasRef} className="sia-bilanbarre" />
                 </div>
               )}
             </div>
