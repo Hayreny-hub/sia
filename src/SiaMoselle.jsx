@@ -3386,9 +3386,11 @@ export default function SiaMoselle() {
 
   const traiterScan = (texte) => {
     let payload;
+    let viaSaisieManuelle = true;
     try {
       payload = JSON.parse(texte);
     } catch (e) {
+      viaSaisieManuelle = false;
       payload = parserBilanCompact(texte);
     }
     if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
@@ -3404,36 +3406,42 @@ export default function SiaMoselle() {
     };
     setBilanCollectif((prev) => [...prev, entree]);
 
-    /* Un bilan scanné ne reste pas qu'un résumé affiché : il importe
-       aussi les articles comme de vraies notices sur ce poste, pour
-       qu'on puisse ensuite les retrouver en Communiquer sans devoir
-       revenir au poste qui les a collectés. */
-    const importees = payload.items.map((it, i) => ({
-      id: `scan${Date.now().toString(36)}${i}`,
-      versement: `scan-${entree.id}`,
-      cote: it.cote || null,
-      intitule: it.titre,
-      dates: it.dates,
-      producteur: groupe,
-      nature: it.nature || "publique",
-      comm: it.comm || "libre",
-      motif: it.motif || "",
-      support: it.support || "physique",
-      mesure: it.mesure != null ? it.mesure : 0,
-      sort: it.sort,
-      justification: it.justification || "",
-      echantillon: it.sort === "tri" ? it.echantillon ?? null : null,
-      serie: it.cote ? serieDeCote(it.cote) || "" : "",
-      loc: null,
-      visa: null,
-    }));
-    enregistrer([...notices, ...importees]);
+    /* Seule la saisie manuelle (format JSON) importe aussi en vraie
+       notice sur ce poste : un QR scanné (format compact) reste un
+       résumé affiché dans le bilan, sans toucher aux articles de ce
+       poste ni au module Communiquer. */
+    if (viaSaisieManuelle) {
+      const importees = payload.items.map((it, i) => ({
+        id: `scan${Date.now().toString(36)}${i}`,
+        versement: `scan-${entree.id}`,
+        cote: it.cote || null,
+        intitule: it.titre,
+        dates: it.dates,
+        producteur: groupe,
+        nature: it.nature || "publique",
+        comm: it.comm || "libre",
+        motif: it.motif || "",
+        support: it.support || "physique",
+        mesure: it.mesure != null ? it.mesure : 0,
+        sort: it.sort,
+        justification: it.justification || "",
+        echantillon: it.sort === "tri" ? it.echantillon ?? null : null,
+        serie: it.cote ? serieDeCote(it.cote) || "" : "",
+        loc: null,
+        visa: null,
+      }));
+      enregistrer([...notices, ...importees]);
+    }
 
     setScanErreur("");
     setScanMsg(
-      `Bilan ajouté : ${entree.groupe} (${entree.items.length} article${
-        entree.items.length > 1 ? "s" : ""
-      }) — importé${entree.items.length > 1 ? "s" : ""} aussi dans vos propres articles, cherchables en Communiquer.`
+      viaSaisieManuelle
+        ? `Bilan ajouté : ${entree.groupe} (${entree.items.length} article${
+            entree.items.length > 1 ? "s" : ""
+          }) — importé${entree.items.length > 1 ? "s" : ""} aussi dans vos propres articles, cherchables en Communiquer.`
+        : `Bilan ajouté : ${entree.groupe} (${entree.items.length} article${
+            entree.items.length > 1 ? "s" : ""
+          }).`
     );
   };
 
