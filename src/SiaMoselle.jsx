@@ -2688,6 +2688,9 @@ export default function SiaMoselle() {
   const [scanErreur, setScanErreur] = useState("");
   const [scanMsg, setScanMsg] = useState("");
   const [scanTexte, setScanTexte] = useState("");
+  const [manGroupe, setManGroupe] = useState("");
+  const [manArticles, setManArticles] = useState([{ titre: "", cote: "", dates: "", sort: "conservation" }]);
+  const [manErreur, setManErreur] = useState("");
   const scanInputRef = useRef(null);
   const videoRef = useRef(null);
   const scanCanvasRef = useRef(null);
@@ -3384,6 +3387,62 @@ export default function SiaMoselle() {
     if (!valeur) return;
     traiterScan(valeur);
     setScanTexte("");
+  };
+
+  /* Filet de sécurité qui ne dépend d'aucune caméra : l'animatrice
+     retape elle-même, en lisant l'écran du groupe, de quoi créer le
+     même résultat qu'un scan réussi — réutilise traiterScan pour que
+     l'import dans Communiquer se comporte exactement pareil. */
+  const ajouterArticleManuel = () =>
+    setManArticles((prev) => [...prev, { titre: "", cote: "", dates: "", sort: "conservation" }]);
+
+  const retirerArticleManuel = (i) =>
+    setManArticles((prev) => (prev.length <= 1 ? prev : prev.filter((a, k) => k !== i)));
+
+  const majArticleManuel = (i, champ, valeur) =>
+    setManArticles((prev) => prev.map((a, k) => (k === i ? { ...a, [champ]: valeur } : a)));
+
+  const validerBilanManuel = () => {
+    setManErreur("");
+    const groupe = manGroupe.trim();
+    if (!groupe) {
+      setManErreur("Indiquez le nom du groupe ou du producteur.");
+      return;
+    }
+    const remplis = manArticles.filter((a) => a.titre.trim() || a.cote.trim());
+    if (remplis.length === 0) {
+      setManErreur("Décrivez au moins un article.");
+      return;
+    }
+    for (const a of remplis) {
+      if (!a.titre.trim()) {
+        setManErreur("Chaque article doit avoir un intitulé.");
+        return;
+      }
+      if (!a.cote.trim()) {
+        setManErreur("Chaque article doit avoir une cote pour être trouvable en Communiquer.");
+        return;
+      }
+    }
+    const payload = {
+      groupe,
+      items: remplis.map((a) => ({
+        titre: a.titre.trim(),
+        dates: a.dates.trim(),
+        cote: a.cote.trim().toUpperCase(),
+        sort: a.sort,
+        nature: "publique",
+        support: "physique",
+        mesure: 1,
+        comm: "libre",
+        motif: "",
+        justification: a.sort !== "conservation" ? "Ajouté manuellement" : "",
+        echantillon: null,
+      })),
+    };
+    traiterScan(JSON.stringify(payload));
+    setManGroupe("");
+    setManArticles([{ titre: "", cote: "", dates: "", sort: "conservation" }]);
   };
 
   const boucleScan = () => {
@@ -5562,6 +5621,90 @@ export default function SiaMoselle() {
                 <div className="sia-hint" style={{ marginTop: 0 }}>
                   Un lecteur USB se comporte comme un clavier : cliquez dans ce champ puis
                   scannez — il valide tout seul en appuyant sur Entrée à votre place.
+                </div>
+              </div>
+
+              <div className="sia-champ" style={{ marginTop: "1.4rem", paddingTop: "1rem", borderTop: "1px dashed var(--line)" }}>
+                <div className="sia-motstitre" style={{ marginTop: 0 }}>
+                  Ou à la main, sans caméra ni lecteur
+                </div>
+                <div className="sia-hint" style={{ marginTop: 0, marginBottom: ".7rem" }}>
+                  En lisant l'écran du groupe : retapez juste l'essentiel. Ça produit le même
+                  résultat qu'un scan réussi — les articles seront cherchables en Communiquer.
+                </div>
+                {manErreur && <div className="sia-erreur">{manErreur}</div>}
+
+                <label htmlFor="man-groupe">Nom du groupe / producteur</label>
+                <input
+                  id="man-groupe"
+                  value={manGroupe}
+                  placeholder="Ex. Commune de Sarreguemines"
+                  autoComplete="off"
+                  onChange={(e) => setManGroupe(e.target.value)}
+                  style={{ marginBottom: ".8rem" }}
+                />
+
+                {manArticles.map((a, i) => (
+                  <div className="sia-article" key={i} style={{ marginBottom: ".8rem" }}>
+                    <div className="sia-articlehead">
+                      <span className="sia-articlenum">Article {i + 1}</span>
+                      {manArticles.length > 1 && (
+                        <button
+                          className="sia-inline"
+                          onClick={() => retirerArticleManuel(i)}
+                          aria-label={`Retirer l'article ${i + 1}`}
+                        >
+                          Retirer
+                        </button>
+                      )}
+                    </div>
+                    <div className="sia-champ">
+                      <label htmlFor={`man-int-${i}`}>Intitulé</label>
+                      <input
+                        id={`man-int-${i}`}
+                        value={a.titre}
+                        autoComplete="off"
+                        onChange={(e) => majArticleManuel(i, "titre", e.target.value)}
+                      />
+                    </div>
+                    <div className="sia-loc2">
+                      <div className="sia-champ">
+                        <label htmlFor={`man-cote-${i}`}>Cote</label>
+                        <input
+                          id={`man-cote-${i}`}
+                          className="mono"
+                          value={a.cote}
+                          placeholder="Ex. 212 W 46"
+                          autoComplete="off"
+                          onChange={(e) => majArticleManuel(i, "cote", e.target.value)}
+                        />
+                      </div>
+                      <div className="sia-champ">
+                        <label htmlFor={`man-sort-${i}`}>Sort final</label>
+                        <select
+                          id={`man-sort-${i}`}
+                          className="sia-select"
+                          value={a.sort}
+                          onChange={(e) => majArticleManuel(i, "sort", e.target.value)}
+                        >
+                          {SORTS.map((so) => (
+                            <option key={so.code} value={so.code}>
+                              {so.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+                  <button className="sia-link" onClick={ajouterArticleManuel}>
+                    + Ajouter un article
+                  </button>
+                  <button className="sia-btn" onClick={validerBilanManuel}>
+                    Ajouter au bilan
+                  </button>
                 </div>
               </div>
 
