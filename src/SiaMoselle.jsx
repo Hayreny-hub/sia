@@ -2817,17 +2817,28 @@ export default function SiaMoselle() {
   /* Le bilan d'un poste se résume à l'essentiel pour tenir dans un QR
      code lisible par une webcam : producteur(s) et, par article,
      juste de quoi reconstituer une ligne de compte-rendu. */
+  /* Le bilan transporte assez de champs pour reconstituer un vrai
+     article sur le poste qui scanne (pas seulement un résumé) : c'est
+     ce qui permet à l'animatrice de le retrouver ensuite en
+     Communiquer, depuis son propre poste. */
   const monBilan =
     notices.length === 0
       ? null
       : {
           groupe: [...new Set(notices.map((n) => n.producteur))].filter(Boolean).join(" / "),
           items: notices.map((n) => ({
-            t: n.intitule,
-            s: n.sort,
-            c: n.cote || null,
-            d: n.dates,
-            e: n.sort === "tri" ? n.echantillon : null,
+            titre: n.intitule,
+            dates: n.dates,
+            cote: n.cote || null,
+            sort: n.sort,
+            nature: n.nature,
+            support: n.support,
+            mesure: n.mesure,
+            comm: n.comm,
+            motif: n.comm !== "libre" ? n.motif : "",
+            justification:
+              n.sort === "elimination" || n.sort === "tri" ? n.justification : "",
+            echantillon: n.sort === "tri" ? n.echantillon : null,
           })),
         };
 
@@ -3267,9 +3278,9 @@ export default function SiaMoselle() {
   const totalCollectif = bilanCollectif.reduce(
     (acc, g) => {
       g.items.forEach((it) => {
-        if (it.s === "conservation") acc.conserves++;
-        else if (it.s === "elimination") acc.elimines++;
-        else if (it.s === "tri") acc.tries++;
+        if (it.sort === "conservation") acc.conserves++;
+        else if (it.sort === "elimination") acc.elimines++;
+        else if (it.sort === "tri") acc.tries++;
       });
       return acc;
     },
@@ -3320,18 +3331,45 @@ export default function SiaMoselle() {
       setScanErreur("QR illisible : ce n'est pas un bilan SIA valide.");
       return;
     }
+    const groupe = payload.groupe || "Groupe sans nom";
     const entree = {
       id: `b${Date.now().toString(36)}`,
-      groupe: payload.groupe || "Groupe sans nom",
+      groupe,
       items: payload.items,
       heure: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
     };
     setBilanCollectif((prev) => [...prev, entree]);
+
+    /* Un bilan scanné ne reste pas qu'un résumé affiché : il importe
+       aussi les articles comme de vraies notices sur ce poste, pour
+       qu'on puisse ensuite les retrouver en Communiquer sans devoir
+       revenir au poste qui les a collectés. */
+    const importees = payload.items.map((it, i) => ({
+      id: `scan${Date.now().toString(36)}${i}`,
+      versement: `scan-${entree.id}`,
+      cote: it.cote || null,
+      intitule: it.titre,
+      dates: it.dates,
+      producteur: groupe,
+      nature: it.nature || "publique",
+      comm: it.comm || "libre",
+      motif: it.motif || "",
+      support: it.support || "physique",
+      mesure: it.mesure != null ? it.mesure : 0,
+      sort: it.sort,
+      justification: it.justification || "",
+      echantillon: it.sort === "tri" ? it.echantillon ?? null : null,
+      serie: it.cote ? serieDeCote(it.cote) || "" : "",
+      loc: null,
+      visa: null,
+    }));
+    enregistrer([...notices, ...importees]);
+
     setScanErreur("");
     setScanMsg(
       `Bilan ajouté : ${entree.groupe} (${entree.items.length} article${
         entree.items.length > 1 ? "s" : ""
-      }).`
+      }) — importé${entree.items.length > 1 ? "s" : ""} aussi dans vos propres articles, cherchables en Communiquer.`
     );
   };
 
@@ -3375,11 +3413,11 @@ export default function SiaMoselle() {
       L.push(`${String(i + 1).padStart(2, " ")}. ${g.groupe} (scanne a ${g.heure})`);
       g.items.forEach((it) => {
         const sort =
-          it.s === "conservation" ? "conserve" : it.s === "elimination" ? "elimine" : "trie";
-        const cote = it.c ? ` - cote ${it.c}` : "";
-        L.push(`     - [${sort}] ${it.t}${cote}`);
-        if (it.e != null) {
-          L.push(`       dont echantillon conserve separement : ${it.e}`);
+          it.sort === "conservation" ? "conserve" : it.sort === "elimination" ? "elimine" : "trie";
+        const cote = it.cote ? ` - cote ${it.cote}` : "";
+        L.push(`     - [${sort}] ${it.titre}${cote}`);
+        if (it.echantillon != null) {
+          L.push(`       dont echantillon conserve separement : ${it.echantillon}`);
         }
       });
       L.push("");
@@ -5445,14 +5483,14 @@ export default function SiaMoselle() {
                       {monBilan.items.map((it, i) => (
                         <div key={i}>
                           {i + 1}.{" "}
-                          {it.s === "conservation"
+                          {it.sort === "conservation"
                             ? "Conservé"
-                            : it.s === "elimination"
+                            : it.sort === "elimination"
                             ? "Éliminé"
                             : "Tri sélectif"}{" "}
-                          — {it.t}
-                          {it.c ? ` — cote ${it.c}` : ""}
-                          {it.e != null ? ` (dont ${it.e} en échantillon)` : ""}
+                          — {it.titre}
+                          {it.cote ? ` — cote ${it.cote}` : ""}
+                          {it.echantillon != null ? ` (dont ${it.echantillon} en échantillon)` : ""}
                         </div>
                       ))}
                     </div>
@@ -5522,13 +5560,13 @@ export default function SiaMoselle() {
                       </div>
                       {g.items.map((it, i) => (
                         <div className="sia-elimmeta" key={i}>
-                          {it.s === "conservation"
+                          {it.sort === "conservation"
                             ? "Conservé"
-                            : it.s === "elimination"
+                            : it.sort === "elimination"
                             ? "Éliminé"
                             : "Tri sélectif"}{" "}
-                          — {it.t}
-                          {it.c ? ` — cote ${it.c}` : ""}
+                          — {it.titre}
+                          {it.cote ? ` — cote ${it.cote}` : ""}
                         </div>
                       ))}
                       <button
