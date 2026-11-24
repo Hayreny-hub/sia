@@ -2687,6 +2687,8 @@ export default function SiaMoselle() {
   const [scanActif, setScanActif] = useState(false);
   const [scanErreur, setScanErreur] = useState("");
   const [scanMsg, setScanMsg] = useState("");
+  const [scanTexte, setScanTexte] = useState("");
+  const scanInputRef = useRef(null);
   const videoRef = useRef(null);
   const scanCanvasRef = useRef(null);
   const qrCanvasRef = useRef(null);
@@ -2861,6 +2863,9 @@ export default function SiaMoselle() {
   useEffect(() => {
     if (tab !== "bilan" && streamRef.current) {
       arreterScan();
+    }
+    if (tab === "bilan" && scanInputRef.current) {
+      scanInputRef.current.focus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
@@ -3371,6 +3376,17 @@ export default function SiaMoselle() {
         entree.items.length > 1 ? "s" : ""
       }) — importé${entree.items.length > 1 ? "s" : ""} aussi dans vos propres articles, cherchables en Communiquer.`
     );
+  };
+
+  /* Un lecteur de codes-barres/QR USB se comporte comme un clavier :
+     il "tape" le contenu décodé dans le champ actif puis valide par
+     Entrée. Ce champ dédié reçoit donc exactement la même chaîne que
+     jsQR aurait lue depuis la caméra, sans dépendre d'une webcam. */
+  const validerScanTexte = () => {
+    const valeur = scanTexte.trim();
+    if (!valeur) return;
+    traiterScan(valeur);
+    setScanTexte("");
   };
 
   const boucleScan = () => {
@@ -5528,6 +5544,28 @@ export default function SiaMoselle() {
               <div className="sia-hint">
                 Pointez la caméra vers l'écran du groupe, bien éclairé et stable quelques
                 secondes. Si ça ne capte pas, utilisez le texte affiché sur son poste.
+              </div>
+
+              <div className="sia-champ" style={{ marginTop: "1rem" }}>
+                <label htmlFor="scan-txt">Ou avec un lecteur de codes-barres/QR USB</label>
+                <div className="sia-searchrow">
+                  <input
+                    id="scan-txt"
+                    ref={scanInputRef}
+                    value={scanTexte}
+                    placeholder="Cliquez ici, puis scannez le QR du groupe"
+                    autoComplete="off"
+                    onChange={(e) => setScanTexte(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && validerScanTexte()}
+                  />
+                  <button className="sia-btn" onClick={validerScanTexte}>
+                    Ajouter
+                  </button>
+                </div>
+                <div className="sia-hint" style={{ marginTop: 0 }}>
+                  Un lecteur USB se comporte comme un clavier : cliquez dans ce champ puis
+                  scannez — il valide tout seul en appuyant sur Entrée à votre place.
+                </div>
               </div>
 
               {bilanCollectif.length > 0 && (
