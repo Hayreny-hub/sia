@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import QRCode from "qrcode";
 import jsQR from "jsqr";
+import JsBarcode from "jsbarcode";
 
 
 /* Affiche syndicale conservee dans le fonds associatif (690 J). */
@@ -1244,6 +1245,9 @@ const CSS = `
 .sia-bilanqr{width:200px;height:200px;border:1px solid var(--kraft);border-radius:2px;
   background:#faf6ea;padding:.5rem;flex-shrink:0;}
 .sia-bilantexte{flex:1 1 280px;min-width:0;}
+.sia-bilanbarres{margin-top:.3rem;}
+.sia-bilanbarre{max-width:100%;height:auto;background:#faf6ea;border:1px solid var(--kraft);
+  border-radius:2px;padding:.4rem;}
 .sia-bilanrepli{background:var(--paper-dark);border:1px dashed var(--kraft);border-radius:2px;
   padding:.8rem .9rem;font-size:.78rem;line-height:1.7;color:var(--ink);margin-top:.5rem;}
 .sia-bilanvideo{width:100%;max-width:420px;border:1px solid var(--kraft);border-radius:2px;
@@ -2692,6 +2696,7 @@ export default function SiaMoselle() {
   const videoRef = useRef(null);
   const scanCanvasRef = useRef(null);
   const qrCanvasRef = useRef(null);
+  const barcodeCanvasRef = useRef(null);
   const streamRef = useRef(null);
   const scanLoopRef = useRef(null);
   const dernierScanRef = useRef("");
@@ -2816,9 +2821,6 @@ export default function SiaMoselle() {
     .filter((n) => n.support === "physique")
     .reduce((t, n) => t + (n.mesure || 0), 0);
 
-  /* Le bilan d'un poste se résume à l'essentiel pour tenir dans un QR
-     code lisible par une webcam : producteur(s) et, par article,
-     juste de quoi reconstituer une ligne de compte-rendu. */
   /* Le bilan transporte assez de champs pour reconstituer un vrai
      article sur le poste qui scanne (pas seulement un résumé) : c'est
      ce qui permet à l'animatrice de le retrouver ensuite en
@@ -2846,6 +2848,42 @@ export default function SiaMoselle() {
 
   const monBilanTexte = monBilan ? JSON.stringify(monBilan) : "";
 
+  /* Un lecteur de codes-barres classique (1D) ne lit pas les QR, et
+     n'accepte que de l'ASCII imprimable : on normalise (accents et
+     tirets longs retirés) et on compacte avec des séparateurs plutôt
+     que du JSON, pour tenir dans un Code 128 raisonnable. */
+  const versCode128 = (v) =>
+    String(v == null ? "" : v)
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[~|^]/g, " ")
+      .replace(/[^\x20-\x7E]/g, "-");
+
+  const monBilanCode128 = monBilan
+    ? [
+        versCode128(monBilan.groupe),
+        monBilan.items
+          .map((it) =>
+            [
+              it.titre,
+              it.dates,
+              it.cote || "",
+              it.sort,
+              it.nature,
+              it.support,
+              it.mesure,
+              it.comm,
+              it.motif,
+              it.justification,
+              it.echantillon != null ? it.echantillon : "",
+            ]
+              .map(versCode128)
+              .join("~")
+          )
+          .join("^"),
+      ].join("|")
+    : "";
+
   useEffect(() => {
     if (!qrCanvasRef.current) return;
     if (!monBilanTexte) return;
@@ -2857,6 +2895,24 @@ export default function SiaMoselle() {
       /* QR indisponible : le repli en texte reste affiche */
     });
   }, [monBilanTexte, tab]);
+
+  useEffect(() => {
+    if (!barcodeCanvasRef.current) return;
+    if (!monBilanCode128) return;
+    try {
+      JsBarcode(barcodeCanvasRef.current, monBilanCode128, {
+        format: "CODE128",
+        width: 1.6,
+        height: 55,
+        fontSize: 11,
+        margin: 8,
+        background: "#faf6ea",
+        lineColor: "#2b241d",
+      });
+    } catch (e) {
+      /* code-barres indisponible : le QR et le texte restent utilisables */
+    }
+  }, [monBilanCode128, tab]);
 
   /* On coupe la camera des qu'on quitte l'onglet, pour ne pas laisser
      un flux video actif en arriere-plan. */
@@ -3324,16 +3380,45 @@ export default function SiaMoselle() {
     setScanActif(false);
   };
 
+  /* Un lecteur de codes-barres tape le format compact (voir
+     monBilanCode128) plutôt que le JSON du QR : on le reconnaît à
+     l'absence d'accolade et on le découpe selon les mêmes séparateurs
+     utilisés pour le fabriquer. */
+  const parserBilanCode128 = (texte) => {
+    const sep = texte.indexOf("|");
+    if (sep === -1) return null;
+    const groupe = texte.slice(0, sep);
+    const itemsTxt = texte.slice(sep + 1);
+    if (!itemsTxt) return null;
+    const items = itemsTxt.split("^").map((bloc) => {
+      const [titre, dates, cote, sort, nature, support, mesure, comm, motif, justification, echantillon] =
+        bloc.split("~");
+      return {
+        titre: titre || "",
+        dates: dates || "",
+        cote: cote || null,
+        sort: sort || "conservation",
+        nature: nature || "publique",
+        support: support || "physique",
+        mesure: mesure ? parseFloat(mesure) : 0,
+        comm: comm || "libre",
+        motif: motif || "",
+        justification: justification || "",
+        echantillon: echantillon ? parseFloat(echantillon) : null,
+      };
+    });
+    return { groupe, items };
+  };
+
   const traiterScan = (texte) => {
     let payload;
     try {
       payload = JSON.parse(texte);
     } catch (e) {
-      setScanErreur("QR illisible : ce n'est pas un bilan SIA valide.");
-      return;
+      payload = parserBilanCode128(texte);
     }
-    if (!payload || !Array.isArray(payload.items)) {
-      setScanErreur("QR illisible : ce n'est pas un bilan SIA valide.");
+    if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
+      setScanErreur("Scan illisible : ce n'est pas un bilan SIA valide.");
       return;
     }
     const groupe = payload.groupe || "Groupe sans nom";
@@ -5511,6 +5596,15 @@ export default function SiaMoselle() {
                       ))}
                     </div>
                   </div>
+                </div>
+              )}
+              {monBilan && (
+                <div className="sia-bilanbarres">
+                  <div className="sia-hint" style={{ marginTop: ".9rem" }}>
+                    Ou avec un lecteur de codes-barres (sans caméra, sans QR) — les accents sont
+                    retirés automatiquement, sans conséquence sur l'import :
+                  </div>
+                  <canvas ref={barcodeCanvasRef} className="sia-bilanbarre" />
                 </div>
               )}
             </div>
