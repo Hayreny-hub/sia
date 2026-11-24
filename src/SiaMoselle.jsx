@@ -2844,7 +2844,38 @@ export default function SiaMoselle() {
           })),
         };
 
-  const monBilanTexte = monBilan ? JSON.stringify(monBilan) : "";
+  /* Un format compact (séparateurs plutôt que JSON) tient en nettement
+     moins de caractères pour le même contenu : moins de caractères,
+     c'est un QR moins dense, donc des modules plus gros — plus
+     faciles à faire nettement par une webcam qui peine à focaliser.
+     Le JSON reste compris en entrée (voir traiterScan) pour la saisie
+     manuelle, qui continue de le produire. */
+  const versCompact = (v) => String(v == null ? "" : v).replace(/[~|^]/g, " ");
+
+  const monBilanTexte = monBilan
+    ? [
+        versCompact(monBilan.groupe),
+        monBilan.items
+          .map((it) =>
+            [
+              it.titre,
+              it.dates,
+              it.cote || "",
+              it.sort,
+              it.nature,
+              it.support,
+              it.mesure,
+              it.comm,
+              it.motif,
+              it.justification,
+              it.echantillon != null ? it.echantillon : "",
+            ]
+              .map(versCompact)
+              .join("~")
+          )
+          .join("^"),
+      ].join("|")
+    : "";
 
   useEffect(() => {
     if (!qrCanvasRef.current) return;
@@ -3324,16 +3355,44 @@ export default function SiaMoselle() {
     setScanActif(false);
   };
 
+  /* Le QR encode désormais le format compact (voir monBilanTexte) ;
+     la saisie manuelle continue elle de produire du JSON. On accepte
+     les deux, selon ce qui arrive. */
+  const parserBilanCompact = (texte) => {
+    const sep = texte.indexOf("|");
+    if (sep === -1) return null;
+    const groupe = texte.slice(0, sep);
+    const itemsTxt = texte.slice(sep + 1);
+    if (!itemsTxt) return null;
+    const items = itemsTxt.split("^").map((bloc) => {
+      const [titre, dates, cote, sort, nature, support, mesure, comm, motif, justification, echantillon] =
+        bloc.split("~");
+      return {
+        titre: titre || "",
+        dates: dates || "",
+        cote: cote || null,
+        sort: sort || "conservation",
+        nature: nature || "publique",
+        support: support || "physique",
+        mesure: mesure ? parseFloat(mesure) : 0,
+        comm: comm || "libre",
+        motif: motif || "",
+        justification: justification || "",
+        echantillon: echantillon ? parseFloat(echantillon) : null,
+      };
+    });
+    return { groupe, items };
+  };
+
   const traiterScan = (texte) => {
     let payload;
     try {
       payload = JSON.parse(texte);
     } catch (e) {
-      setScanErreur("QR illisible : ce n'est pas un bilan SIA valide.");
-      return;
+      payload = parserBilanCompact(texte);
     }
-    if (!payload || !Array.isArray(payload.items)) {
-      setScanErreur("QR illisible : ce n'est pas un bilan SIA valide.");
+    if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
+      setScanErreur("Scan illisible : ce n'est pas un bilan SIA valide.");
       return;
     }
     const groupe = payload.groupe || "Groupe sans nom";
