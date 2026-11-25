@@ -6772,15 +6772,10 @@ const CSS = `
 .sia-vault.open .sia-leaf.l{transform:translateX(-100%);}
 .sia-vault.open .sia-leaf.r{transform:translateX(100%);}
 
-.sia-splash{position:fixed;inset:0;z-index:200;display:flex;cursor:pointer;background:#1c170f;}
-.sia-splashleaf{flex:1;position:relative;overflow:hidden;
+.sia-splash{position:fixed;inset:0;z-index:200;cursor:pointer;background:#1c170f;
   transition:transform .9s cubic-bezier(.7,0,.2,1);}
-.sia-splashleaf.l{justify-content:flex-start;}
-.sia-splashimg{position:fixed;top:0;width:100vw;height:100vh;object-fit:contain;}
-.sia-splashimg-l{left:0;}
-.sia-splashimg-r{right:0;}
-.sia-splash.open .sia-splashleaf.l{transform:translateX(-100%);}
-.sia-splash.open .sia-splashleaf.r{transform:translateX(100%);}
+.sia-splash.open{transform:translateY(100%);}
+.sia-splashimg{position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:contain;}
 .sia-splashhint{position:absolute;bottom:7%;left:0;right:0;text-align:center;
   font-family:'IBM Plex Mono',monospace;font-size:.85rem;letter-spacing:.08em;
   text-transform:uppercase;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7);
@@ -6808,7 +6803,7 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){
   .sia-fiche,.sia-stamp,.sia-seg,.sia-loc.impact,.sia-beam{animation:none;opacity:1;transform:none;}
   .sia-leaf{transition:none;}
-  .sia-splashleaf{transition:none;}
+  .sia-splash{transition:none;}
   .sia-splashhint{animation:none;}
   .sia-dust{display:none;}
   .sia-cell.hit{transition:none;}
@@ -9573,12 +9568,7 @@ export default function SiaMoselle() {
             if (e.key === "Enter" || e.key === " ") demarrerSplash();
           }}
         >
-          <div className="sia-splashleaf l">
-            <img src={SPLASH_ATELIER} alt="" className="sia-splashimg sia-splashimg-l" />
-          </div>
-          <div className="sia-splashleaf r">
-            <img src={SPLASH_ATELIER} alt="" className="sia-splashimg sia-splashimg-r" />
-          </div>
+          <img src={SPLASH_ATELIER} alt="" className="sia-splashimg" />
           <div className="sia-splashhint">Touchez l'écran pour commencer</div>
         </div>
       )}
