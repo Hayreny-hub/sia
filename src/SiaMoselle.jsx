@@ -3670,8 +3670,8 @@ const FONDS = {
     imageLegende: "Affiche syndicale CFTC, Fédération des mineurs — bilan de la grève du 1er mars au 4 avril 1963. Imprimerie de la Centrale, Lens.",
     loc: { site: "CAITM — Saint-Avold", magasin: "B", epi: 22, travee: 9, tablette: 4, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
   },
-  "152 ETP": {
-    serie: "Série ETP — Archives publiques d'organismes dotés de la personnalité juridique",
+  "230 W 2": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
     intitule: "Chambre de commerce et d'industrie de la Moselle — délibérations et affaires économiques",
     dates: "1920–1985",
     producteur: "Chambre de commerce et d'industrie de la Moselle",
@@ -3791,7 +3791,7 @@ const INSTRUMENTS = [
   { type: "Répertoire numérique", titre: "Bureau des hypothèques de Metz", niveau: "Sous-série (4 Q)", dates: "1800–1880", cotesExtremes: "4 Q 1 – 4 Q 200", redacteur: "Service des archives, 2008", format: "Papier", coteEx: "4 Q 112" },
   { type: "Répertoire numérique détaillé", titre: "Houillères du Bassin de Lorraine — travaux du fond", niveau: "Série HBL", dates: "1946–2004", cotesExtremes: "1 HBL – 980 HBL", redacteur: "CAITM, 2010", format: "XML-EAD", coteEx: "472 HBL" },
   { type: "Répertoire numérique", titre: "Association de mémoire du bassin houiller", niveau: "Fonds privé (690 J)", dates: "1963–2010", cotesExtremes: "690 J 1 – 690 J 85", redacteur: "Service des archives, 2015", format: "XML-EAD", coteEx: "690 J" },
-  { type: "Répertoire numérique", titre: "Chambre de commerce et d'industrie de la Moselle", niveau: "Série ETP (152 ETP)", dates: "1920–1985", cotesExtremes: "152 ETP 1 – 152 ETP 340", redacteur: "Service des archives, 2011", format: "PDF", coteEx: "152 ETP" },
+  { type: "Répertoire numérique", titre: "Chambre de commerce et d'industrie de la Moselle", niveau: "Versement (230 W)", dates: "1920–1985", cotesExtremes: "230 W 2", redacteur: "Service des archives, 2011", format: "PDF", coteEx: "230 W 2" },
   { type: "Bordereau de versement", titre: "Chambre de commerce et d'industrie de la Moselle — assemblée et communication", niveau: "Versement (230 W)", dates: "1978–1979", cotesExtremes: "230 W 1", redacteur: "Service des archives, 2024", format: "XML-EAD", coteEx: "230 W 1" },
   { type: "Répertoire — archives industrielles", titre: "Sidérurgie mosellane — dossiers techniques et plans", niveau: "Fonds CAITM", dates: "1900–1990", cotesExtremes: "2600 CAITM – 2700 CAITM", redacteur: "CAITM, 2018", format: "XML-EAD", coteEx: "2654 CAITM" },
   { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — production et personnel", niveau: "Versement (174 W)", dates: "1868–1980", cotesExtremes: "174 W 1 – 174 W 320", redacteur: "Service des archives, 2013", format: "XML-EAD", coteEx: "174 W 88" },
@@ -3889,7 +3889,7 @@ const REPERTOIRE_HBL = {
 
   sourcesComplementaires: [
     "Série W — versements de la préfecture relatifs à la police des mines et aux affaissements miniers.",
-    "Série ETP — archives de la Chambre de commerce et d'industrie de la Moselle sur l'économie du bassin.",
+    "Série W — archives de la Chambre de commerce et d'industrie de la Moselle sur l'économie du bassin.",
     "690 J — fonds d'une association de mémoire ouvrière : témoignages oraux et photographies complétant les archives d'entreprise.",
     "Fonds CAITM — archives de la sidérurgie mosellane, pour l'articulation charbon-acier.",
   ],
@@ -4007,10 +4007,10 @@ const PRODUCTEURS = [
     nom: "Chambre de commerce et d'industrie de la Moselle",
     dates: "1815 – aujourd'hui",
     description:
-      "Organisme doté de la personnalité juridique représentant les intérêts du commerce et de l'industrie. Ses archives antérieures à 1940 sont regroupées en série ETP plutôt que scindées entre séries anciennes et série W.",
-    fondsAssocies: "Série ETP (152 ETP)",
+      "Organisme doté de la personnalité juridique représentant les intérêts du commerce et de l'industrie. Ses archives entrent par versement, comme celles de toute administration.",
+    fondsAssocies: "Série W",
     nature: "publique",
-    coteEx: "152 ETP",
+    coteEx: "230 W 2",
   },
   {
     type: "Producteur privé (famille)",
@@ -5348,7 +5348,7 @@ const SORTS = [
   { code: "elimination", label: "Élimination" },
 ];
 
-/* Certaines séries se cotent numéro puis code (472 HBL, 152 ETP,
+/* Certaines séries se cotent numéro puis code (472 HBL,
    2654 CAITM) ; les autres suivent le schéma sous-série, lettre,
    article (2 O 45). Le numéro suit la dernière cote attribuée. */
 const SERIES_POSTFIXEES = ["HBL", "CAITM", "ETP", "E DEPOT"];
