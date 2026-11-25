@@ -639,15 +639,6 @@ const FONDS = {
     commDetail: "Non communicable — 50 ans pour les dossiers de personnel (vie privée)",
     loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 12, travee: 5, tablette: 3, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
   },
-  "2890 CAITM": {
-    serie: "Fonds industriels et techniques — Centre des Archives Industrielles et Techniques de la Moselle",
-    intitule: "Cristallerie d'Hartzviller — dossiers de fabrication et modèles",
-    dates: "1875–1990",
-    producteur: "Cristallerie d'Hartzviller",
-    metrage: "0,90 ml",
-    comm: "libre",
-    loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 95, travee: 3, tablette: 4, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
-  },
   "410 J 1": {
     serie: "Série J — Documents entrés par voie extraordinaire (dons, legs, achats, dépôts)",
     intitule: "Registre des comptes rendus de réunions",
@@ -682,7 +673,6 @@ const INSTRUMENTS = [
   { type: "Répertoire numérique", titre: "Chambre de commerce et d'industrie de la Moselle", niveau: "Série ETP (152 ETP)", dates: "1920–1985", cotesExtremes: "152 ETP 1 – 152 ETP 340", redacteur: "Service des archives, 2011", format: "PDF", coteEx: "152 ETP" },
   { type: "Répertoire — archives industrielles", titre: "Sidérurgie mosellane — dossiers techniques et plans", niveau: "Fonds CAITM", dates: "1900–1990", cotesExtremes: "2600 CAITM – 2700 CAITM", redacteur: "CAITM, 2018", format: "XML-EAD", coteEx: "2654 CAITM" },
   { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — production et personnel", niveau: "Versement (174 W)", dates: "1868–1980", cotesExtremes: "174 W 1 – 174 W 320", redacteur: "Service des archives, 2013", format: "XML-EAD", coteEx: "174 W 88" },
-  { type: "Répertoire — archives industrielles", titre: "Cristallerie d'Hartzviller — dossiers de fabrication", niveau: "Fonds CAITM", dates: "1875–1990", cotesExtremes: "2850 CAITM – 2950 CAITM", redacteur: "CAITM, 2019", format: "XML-EAD", coteEx: "2890 CAITM" },
   { type: "Bordereau de versement", titre: "Cristallerie d'Hartzviller — comptes rendus et catalogue", niveau: "Versement (410 J)", dates: "1895–1982", cotesExtremes: "410 J 1 – 410 J 2", redacteur: "Service des archives, 2022", format: "PDF", coteEx: "410 J 1" },
 ];
 
@@ -993,10 +983,10 @@ const PRODUCTEURS = [
     nom: "Cristallerie d'Hartzviller",
     dates: "1875 – aujourd'hui",
     description:
-      "Verrerie puis cristallerie d'art fondée à Hartzviller, en Moselle, toujours en activité. Producteur privé : les dossiers de fabrication et modèles conservés aux Archives départementales sont entrés par dépôt et ne couvrent qu'une partie de son histoire — l'entreprise garde ses archives courantes.",
-    fondsAssocies: "Fonds CAITM",
+      "Verrerie puis cristallerie d'art fondée à Hartzviller, en Moselle, toujours en activité. Producteur privé : les archives conservées aux Archives départementales sont entrées par dépôt et ne couvrent qu'une partie de son histoire — l'entreprise garde ses archives courantes.",
+    fondsAssocies: "Série J",
     nature: "privee",
-    coteEx: "2890 CAITM",
+    coteEx: "410 J 1",
   },
 ];
 
