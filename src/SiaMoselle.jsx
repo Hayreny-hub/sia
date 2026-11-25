@@ -6776,9 +6776,10 @@ const CSS = `
   transition:transform .9s cubic-bezier(.7,0,.2,1);}
 .sia-splash.open{transform:translateY(100%);}
 .sia-splashimg{position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:contain;}
-.sia-splashhint{position:absolute;bottom:7%;left:0;right:0;text-align:center;
+.sia-splashhint{position:absolute;bottom:7%;left:50%;transform:translateX(-50%);
   font-family:'IBM Plex Mono',monospace;font-size:.85rem;letter-spacing:.08em;
-  text-transform:uppercase;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7);
+  text-transform:uppercase;color:#fff;background:rgba(20,15,8,.78);
+  padding:.5rem 1.1rem;border-radius:999px;white-space:nowrap;
   animation:sia-pulse 1.8s ease-in-out infinite;pointer-events:none;}
 @keyframes sia-pulse{0%,100%{opacity:.55;}50%{opacity:1;}}
 
