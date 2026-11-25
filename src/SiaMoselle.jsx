@@ -639,6 +639,33 @@ const FONDS = {
     commDetail: "Non communicable — 50 ans pour les dossiers de personnel (vie privée)",
     loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 12, travee: 5, tablette: 3, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
   },
+  "174 W 89": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
+    intitule: "Correspondance avec le fournisseur",
+    dates: "1983–1995",
+    producteur: "Manufacture des tabacs de Metz",
+    metrage: "0,05 ml",
+    comm: "libre",
+    loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 13, travee: 5, tablette: 4, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "174 W 90": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
+    intitule: "Factures",
+    dates: "1983–1995",
+    producteur: "Manufacture des tabacs de Metz",
+    metrage: "0,06 ml",
+    comm: "libre",
+    loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 14, travee: 5, tablette: 5, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "174 W 91": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
+    intitule: "Notices techniques et plans du matériel",
+    dates: "1983–1995",
+    producteur: "Manufacture des tabacs de Metz",
+    metrage: "0,40 ml",
+    comm: "libre",
+    loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 15, travee: 5, tablette: 6, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
   "410 J 1": {
     serie: "Série J — Documents entrés par voie extraordinaire (dons, legs, achats, dépôts)",
     intitule: "Registre des comptes rendus de réunions",
@@ -673,6 +700,7 @@ const INSTRUMENTS = [
   { type: "Répertoire numérique", titre: "Chambre de commerce et d'industrie de la Moselle", niveau: "Série ETP (152 ETP)", dates: "1920–1985", cotesExtremes: "152 ETP 1 – 152 ETP 340", redacteur: "Service des archives, 2011", format: "PDF", coteEx: "152 ETP" },
   { type: "Répertoire — archives industrielles", titre: "Sidérurgie mosellane — dossiers techniques et plans", niveau: "Fonds CAITM", dates: "1900–1990", cotesExtremes: "2600 CAITM – 2700 CAITM", redacteur: "CAITM, 2018", format: "XML-EAD", coteEx: "2654 CAITM" },
   { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — production et personnel", niveau: "Versement (174 W)", dates: "1868–1980", cotesExtremes: "174 W 1 – 174 W 320", redacteur: "Service des archives, 2013", format: "XML-EAD", coteEx: "174 W 88" },
+  { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — services techniques", niveau: "Versement (174 W)", dates: "1983–1995", cotesExtremes: "174 W 89 – 174 W 91", redacteur: "Service des archives, 2023", format: "XML-EAD", coteEx: "174 W 89" },
   { type: "Bordereau de versement", titre: "Cristallerie d'Hartzviller — comptes rendus et catalogue", niveau: "Versement (410 J)", dates: "1895–1982", cotesExtremes: "410 J 1 – 410 J 2", redacteur: "Service des archives, 2022", format: "PDF", coteEx: "410 J 1" },
 ];
 
