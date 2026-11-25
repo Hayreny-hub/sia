@@ -6776,7 +6776,7 @@ const CSS = `
 .sia-splashleaf{flex:1;position:relative;overflow:hidden;
   transition:transform .9s cubic-bezier(.7,0,.2,1);}
 .sia-splashleaf.l{justify-content:flex-start;}
-.sia-splashimg{position:fixed;top:0;width:100vw;height:100vh;object-fit:cover;}
+.sia-splashimg{position:fixed;top:0;width:100vw;height:100vh;object-fit:contain;}
 .sia-splashimg-l{left:0;}
 .sia-splashimg-r{right:0;}
 .sia-splash.open .sia-splashleaf.l{transform:translateX(-100%);}
