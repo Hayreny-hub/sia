@@ -666,6 +666,25 @@ const FONDS = {
     comm: "libre",
     loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 15, travee: 5, tablette: 6, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
   },
+  "174 W 92": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
+    intitule: "Photographies diverses",
+    dates: "1969",
+    producteur: "Manufacture des tabacs de Metz",
+    metrage: "0,10 ml",
+    comm: "libre",
+    loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 16, travee: 6, tablette: 1, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
+  "174 W 93": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
+    intitule: "Photographies diverses",
+    dates: "1969",
+    producteur: "Manufacture des tabacs de Metz",
+    metrage: "0,34 Go",
+    comm: "libre",
+    support: "numerique",
+    loc: { sae: true, site: "SAE de la Moselle", identifiant: "SAE_DEFINITIF_FRAD057_2024_0012_748215" },
+  },
   "410 J 1": {
     serie: "Série J — Documents entrés par voie extraordinaire (dons, legs, achats, dépôts)",
     intitule: "Registre des comptes rendus de réunions",
@@ -701,6 +720,7 @@ const INSTRUMENTS = [
   { type: "Répertoire — archives industrielles", titre: "Sidérurgie mosellane — dossiers techniques et plans", niveau: "Fonds CAITM", dates: "1900–1990", cotesExtremes: "2600 CAITM – 2700 CAITM", redacteur: "CAITM, 2018", format: "XML-EAD", coteEx: "2654 CAITM" },
   { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — production et personnel", niveau: "Versement (174 W)", dates: "1868–1980", cotesExtremes: "174 W 1 – 174 W 320", redacteur: "Service des archives, 2013", format: "XML-EAD", coteEx: "174 W 88" },
   { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — services techniques", niveau: "Versement (174 W)", dates: "1983–1995", cotesExtremes: "174 W 89 – 174 W 91", redacteur: "Service des archives, 2023", format: "XML-EAD", coteEx: "174 W 89" },
+  { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — photographies (physique et numérique)", niveau: "Versement (174 W)", dates: "1969", cotesExtremes: "174 W 92 – 174 W 93", redacteur: "Service des archives, 2024", format: "XML-EAD", coteEx: "174 W 92" },
   { type: "Bordereau de versement", titre: "Cristallerie d'Hartzviller — comptes rendus et catalogue", niveau: "Versement (410 J)", dates: "1895–1982", cotesExtremes: "410 J 1 – 410 J 2", redacteur: "Service des archives, 2022", format: "PDF", coteEx: "410 J 1" },
 ];
 
