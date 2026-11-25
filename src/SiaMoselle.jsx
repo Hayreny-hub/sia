@@ -629,8 +629,8 @@ const FONDS = {
     comm: "libre",
     loc: { site: "CAITM — Saint-Avold", magasin: "B", epi: 48, travee: 6, tablette: 1, totalTravees: 10, totalEpis: 100, totalTablettes: 6 },
   },
-  "215 MTM": {
-    serie: "Série MTM — Manufacture des tabacs de Metz (fonds d'entreprise publique)",
+  "174 W 88": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
     intitule: "Direction de la manufacture — production et gestion du personnel",
     dates: "1868–1980",
     producteur: "Manufacture des tabacs de Metz",
@@ -663,7 +663,7 @@ const INSTRUMENTS = [
   { type: "Répertoire numérique", titre: "Association de mémoire du bassin houiller", niveau: "Fonds privé (690 J)", dates: "1963–2010", cotesExtremes: "690 J 1 – 690 J 85", redacteur: "Service des archives, 2015", format: "XML-EAD", coteEx: "690 J" },
   { type: "Répertoire numérique", titre: "Chambre de commerce et d'industrie de la Moselle", niveau: "Série ETP (152 ETP)", dates: "1920–1985", cotesExtremes: "152 ETP 1 – 152 ETP 340", redacteur: "Service des archives, 2011", format: "PDF", coteEx: "152 ETP" },
   { type: "Répertoire — archives industrielles", titre: "Sidérurgie mosellane — dossiers techniques et plans", niveau: "Fonds CAITM", dates: "1900–1990", cotesExtremes: "2600 CAITM – 2700 CAITM", redacteur: "CAITM, 2018", format: "XML-EAD", coteEx: "2654 CAITM" },
-  { type: "Répertoire numérique", titre: "Manufacture des tabacs de Metz — production et personnel", niveau: "Série MTM", dates: "1868–1980", cotesExtremes: "1 MTM – 320 MTM", redacteur: "Service des archives, 2013", format: "XML-EAD", coteEx: "215 MTM" },
+  { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — production et personnel", niveau: "Versement (174 W)", dates: "1868–1980", cotesExtremes: "174 W 1 – 174 W 320", redacteur: "Service des archives, 2013", format: "XML-EAD", coteEx: "174 W 88" },
   { type: "Répertoire — archives industrielles", titre: "Cristallerie d'Hartzviller — dossiers de fabrication", niveau: "Fonds CAITM", dates: "1875–1990", cotesExtremes: "2850 CAITM – 2950 CAITM", redacteur: "CAITM, 2019", format: "XML-EAD", coteEx: "2890 CAITM" },
 ];
 
@@ -965,9 +965,9 @@ const PRODUCTEURS = [
     dates: "1868 – 1980",
     description:
       "Manufacture d'État rattachée à la Régie des tabacs puis à la SEITA, l'une des grandes implantations industrielles de Metz. Établissement public à caractère industriel et commercial : ses archives entrent par versement, comme celles de toute administration.",
-    fondsAssocies: "Série MTM",
+    fondsAssocies: "Série W",
     nature: "publique",
-    coteEx: "215 MTM",
+    coteEx: "174 W 88",
   },
   {
     type: "Entreprise verrière",
