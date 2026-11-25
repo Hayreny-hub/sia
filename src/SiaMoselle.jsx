@@ -637,7 +637,7 @@ const FONDS = {
     metrage: "1,50 ml",
     comm: "differee",
     commDetail: "Non communicable — 50 ans pour les dossiers de personnel (vie privée)",
-    loc: { site: "Saint-Julien-lès-Metz", magasin: "A", epi: 12, travee: 5, tablette: 3, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+    loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 12, travee: 5, tablette: 3, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
   },
   "2890 CAITM": {
     serie: "Fonds industriels et techniques — Centre des Archives Industrielles et Techniques de la Moselle",
