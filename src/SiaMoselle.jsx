@@ -3679,6 +3679,15 @@ const FONDS = {
     comm: "libre",
     loc: { site: "Saint-Julien-lès-Metz", magasin: "A", epi: 91, travee: 4, tablette: 5, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
   },
+  "230 W 1": {
+    serie: "Série W — Archives publiques postérieures à 1940 (cotation continue)",
+    intitule: "Circulaires et notes de service ; comptes rendus des séances de l'assemblée ; coupures de presse",
+    dates: "1978–1979",
+    producteur: "Chambre de commerce et d'industrie de la Moselle",
+    metrage: "0,15 ml",
+    comm: "libre",
+    loc: { site: "Saint-Julien-lès-Metz", magasin: "A", epi: 92, travee: 4, tablette: 6, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
+  },
   "2654 CAITM": {
     serie: "Fonds industriels et techniques — Centre des Archives Industrielles et Techniques de la Moselle",
     intitule: "Sidérurgie mosellane — dossiers techniques et plans d'usine",
@@ -3783,6 +3792,7 @@ const INSTRUMENTS = [
   { type: "Répertoire numérique détaillé", titre: "Houillères du Bassin de Lorraine — travaux du fond", niveau: "Série HBL", dates: "1946–2004", cotesExtremes: "1 HBL – 980 HBL", redacteur: "CAITM, 2010", format: "XML-EAD", coteEx: "472 HBL" },
   { type: "Répertoire numérique", titre: "Association de mémoire du bassin houiller", niveau: "Fonds privé (690 J)", dates: "1963–2010", cotesExtremes: "690 J 1 – 690 J 85", redacteur: "Service des archives, 2015", format: "XML-EAD", coteEx: "690 J" },
   { type: "Répertoire numérique", titre: "Chambre de commerce et d'industrie de la Moselle", niveau: "Série ETP (152 ETP)", dates: "1920–1985", cotesExtremes: "152 ETP 1 – 152 ETP 340", redacteur: "Service des archives, 2011", format: "PDF", coteEx: "152 ETP" },
+  { type: "Bordereau de versement", titre: "Chambre de commerce et d'industrie de la Moselle — assemblée et communication", niveau: "Versement (230 W)", dates: "1978–1979", cotesExtremes: "230 W 1", redacteur: "Service des archives, 2024", format: "XML-EAD", coteEx: "230 W 1" },
   { type: "Répertoire — archives industrielles", titre: "Sidérurgie mosellane — dossiers techniques et plans", niveau: "Fonds CAITM", dates: "1900–1990", cotesExtremes: "2600 CAITM – 2700 CAITM", redacteur: "CAITM, 2018", format: "XML-EAD", coteEx: "2654 CAITM" },
   { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — production et personnel", niveau: "Versement (174 W)", dates: "1868–1980", cotesExtremes: "174 W 1 – 174 W 320", redacteur: "Service des archives, 2013", format: "XML-EAD", coteEx: "174 W 88" },
   { type: "Bordereau de versement", titre: "Manufacture des tabacs de Metz — services techniques", niveau: "Versement (174 W)", dates: "1983–1995", cotesExtremes: "174 W 89 – 174 W 91", redacteur: "Service des archives, 2023", format: "XML-EAD", coteEx: "174 W 89" },
