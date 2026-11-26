@@ -6775,7 +6775,7 @@ const CSS = `
 
 .sia-splash{position:fixed;inset:0;z-index:200;cursor:pointer;background:#1c170f;
   transition:transform .9s cubic-bezier(.7,0,.2,1);}
-.sia-splash.open{transform:translateY(100%);}
+.sia-splash.open{transform:translateX(-100%);}
 .sia-splashimg{position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:contain;}
 .sia-splashhint{position:absolute;bottom:7%;left:50%;transform:translateX(-50%);
   font-family:'IBM Plex Mono',monospace;font-size:.85rem;letter-spacing:.08em;
