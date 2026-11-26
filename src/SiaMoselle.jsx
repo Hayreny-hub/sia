@@ -8519,22 +8519,8 @@ export default function SiaMoselle() {
       return;
     }
 
-    const occupe = [
-      ...Object.entries(FONDS).map(([c, d]) => ({ cote: c, loc: d.loc })),
-      ...notices.filter((n) => n.loc && !n.loc.sae && n.id !== id),
-    ].find(
-      (a) =>
-        a.loc.site === cSite &&
-        a.loc.magasin === cMagasin &&
-        a.loc.epi === epi &&
-        a.loc.travee === travee &&
-        a.loc.tablette === tablette
-    );
-    if (occupe) {
-      setCErreur(`Emplacement déjà occupé par ${occupe.cote}.`);
-      return;
-    }
-
+    /* Une tablette porte une boîte, qui peut contenir plusieurs articles :
+       rien n'empêche deux articles de partager le même emplacement. */
     const loc = {
       site: cSite,
       magasin: cMagasin,
@@ -10713,8 +10699,9 @@ export default function SiaMoselle() {
               <div className="sia-eyebrow">Module de conservation</div>
               <h1>Placer en magasin</h1>
               <p>
-                Chaque article décrit doit recevoir un emplacement physique. La place est une
-                ressource limitée : un emplacement occupé ne peut pas servir deux fois.
+                Chaque article décrit doit recevoir un emplacement physique. Un même emplacement
+                correspond à une boîte, qui peut contenir plusieurs articles : rien n'oblige à
+                donner un emplacement différent à chacun.
               </p>
             </div>
 
