@@ -5907,7 +5907,8 @@ const FONDS = {
     dates: "1895",
     producteur: "Cristallerie d'Hartzviller",
     metrage: "0,10 ml",
-    comm: "libre",
+    comm: "differee",
+    commDetail: "Non communicable — 25 ans, secret des affaires et secret industriel et commercial",
     loc: { site: "CAITM — Saint-Avold", magasin: "A", epi: 60, travee: 2, tablette: 5, totalTravees: 10, totalEpis: 158, totalTablettes: 6 },
   },
   "410 J 2": {
